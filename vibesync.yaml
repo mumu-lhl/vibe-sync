@@ -1,0 +1,8 @@
+# Vibe Sync Configuration
+
+version: 1
+
+sync_from: "gemini"
+
+sync_to:
+  - "claude code"
