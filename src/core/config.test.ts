@@ -120,7 +120,7 @@ sync_to:
             loadConfig();
 
             // Assert
-            expect(console.error).toHaveBeenCalledWith(chalk.red('Error reading or parsing vibesync.yaml:'), error);
+            expect(console.error).toHaveBeenCalledWith(chalk.red(`Error reading or parsing ${configPath}:`), error);
             expect(process.exit).toHaveBeenCalledWith(1);
         });
 

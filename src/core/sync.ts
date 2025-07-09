@@ -71,32 +71,49 @@ async function copySourceToDest(source: ResolvedSyncObject, dest: ResolvedSyncOb
     }
 
     // Special handling for Kilo Code and Roo Code
-    if ((source.name === 'Kilo Code' || source.name === 'Roo Code') && dest.type !== 'file') {
-        const subdirs = ['rules', 'workflows'];
-        let handled = false;
+    if ((source.name === 'Kilo Code' || source.name === 'Roo Code' || dest.name === 'Kilo Code' || dest.name === 'Roo Code') && dest.type !== 'file') {
+        const isSourceSpecial = source.name === 'Kilo Code' || source.name === 'Roo Code';
 
-        for (const subdir of subdirs) {
-            const sourceSubdir = path.join(source.path, subdir);
-            const destSubdir = path.join(dest.path, subdir);
+        if (isSourceSpecial) {
+            const subdirs = ['rules', 'workflows'];
+            let handled = false;
 
-            try {
-                const sourceStat = await fs.stat(sourceSubdir);
+            for (const subdir of subdirs) {
+                const sourceSubdir = path.join(source.path, subdir);
+                const destSubdir = path.join(dest.path, subdir);
 
-                if (sourceStat.isDirectory()) {
-                    console.log(chalk.blue(`Syncing subdirectory: ${sourceSubdir} to ${destSubdir}`));
-                    await fs.mkdir(destSubdir, { recursive: true });
-                    await fs.cp(sourceSubdir, destSubdir, { recursive: true, force: true });
-                    handled = true;
+                try {
+                    const sourceStat = await fs.stat(sourceSubdir);
+
+                    if (sourceStat.isDirectory()) {
+                        console.log(chalk.blue(`Syncing subdirectory: ${sourceSubdir} to ${destSubdir}`));
+                        await fs.mkdir(destSubdir, { recursive: true });
+                        await fs.cp(sourceSubdir, destSubdir, { recursive: true, force: true });
+                        handled = true;
+                    }
+                } catch (error) {
+                    // If a directory doesn't exist, stat will throw. We can ignore this.
                 }
-            } catch (error) {
-                // If a directory doesn't exist, stat will throw. We can ignore this.
             }
-        }
 
-        if (handled) {
-            // If we performed a sync of subdirectories, we might want to skip the main copy.
-            // Let's assume for now that if subdirectories are synced, the top-level sync is not needed.
-            console.log(chalk.green(`Subdirectory sync for ${source.name} completed.`));
+            if (handled) {
+                // If we performed a sync of subdirectories, we might want to skip the main copy.
+                // Let's assume for now that if subdirectories are synced, the top-level sync is not needed.
+                console.log(chalk.green(`Subdirectory sync for ${source.name} completed.`));
+                return;
+            }
+        } else { // Destination is Kilo Code or Roo Code, and source is not.
+            const rulesDestPath = path.join(dest.path, 'rules');
+            console.log(chalk.blue(`Syncing to ${dest.name}'s "rules" directory: ${rulesDestPath}`));
+            await fs.mkdir(rulesDestPath, { recursive: true });
+
+            let finalDestPath = rulesDestPath;
+            if (source.type === 'file') {
+                finalDestPath = path.join(rulesDestPath, 'vibesync.md');
+            }
+
+            await fs.cp(source.path, finalDestPath, { recursive: true, force: true });
+            console.log(chalk.green(`Sync to ${dest.name} completed.`));
             return;
         }
     }
