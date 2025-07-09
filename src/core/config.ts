@@ -51,7 +51,7 @@ export function resolveSyncObject(syncObject: SyncObject): ResolvedSyncObject {
         try {
             const stats = fs.statSync(absolutePath);
             type = stats.isDirectory() ? 'directory' : 'file';
-        } catch (e) {
+        } catch {
             // Doesn't exist, guess based on trailing slash
             type = p.endsWith('/') || p.endsWith('\\') ? 'directory' : 'file';
         }

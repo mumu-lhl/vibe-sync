@@ -10,7 +10,8 @@
   "scripts": {
     "test": "vitest",
     "build": "tsc",
-    "start": "node src/index.ts"
+    "start": "node src/index.ts",
+    "lint": "oxlint"
   },
   "keywords": [],
   "author": "",
@@ -19,6 +20,7 @@
   "devDependencies": {
     "@types/js-yaml": "^4.0.9",
     "@types/node": "^24.0.10",
+    "oxlint": "^1.6.0",
     "typescript": "^5.8.3",
     "vitest": "^3.2.4"
   },

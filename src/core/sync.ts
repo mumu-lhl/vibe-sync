@@ -59,7 +59,7 @@ async function copySourceToDest(source: ResolvedSyncObject, dest: ResolvedSyncOb
                     await fs.cp(sourceSubdir, destSubdir, cpOptions);
                     handled = true;
                 }
-            } catch (error) {
+            } catch {
                 // If a directory doesn't exist, stat will throw. We can ignore this.
             }
         }
@@ -91,7 +91,7 @@ async function copySourceToDest(source: ResolvedSyncObject, dest: ResolvedSyncOb
                         await fs.cp(sourceSubdir, destSubdir, { recursive: true, force: true });
                         handled = true;
                     }
-                } catch (error) {
+                } catch {
                     // If a directory doesn't exist, stat will throw. We can ignore this.
                 }
             }

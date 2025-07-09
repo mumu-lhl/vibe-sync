@@ -3,7 +3,7 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import fs from 'fs';
 import path from 'path';
 import yaml from 'js-yaml';
-import { generateConfig, loadConfig, VibeSyncConfigSchema } from './config.ts';
+import { generateConfig, loadConfig } from './config.ts';
 import chalk from 'chalk';
 
 // Mock the fs module

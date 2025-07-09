@@ -1,6 +1,6 @@
 import { Command } from 'commander';
 import { sync } from './core/sync.ts';
-import { generateConfig as generateConfig } from './core/config.ts';
+import { generateConfig } from './core/config.ts';
 import pkg from '../package.json' with { type: "json" };
 
 const program = new Command();

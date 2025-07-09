@@ -116,7 +116,7 @@ describe('Sync Tests', () => {
 
         it('should merge files from a directory into a single file', async () => {
             const files = ['file1.txt', 'file2.txt'];
-            const filePaths = files.map(f => path.join(mockSource.path, f));
+            files.map(f => path.join(mockSource.path, f));
 
             vi.mocked(fs.readdir).mockResolvedValue(files.map(f => ({ name: f, isDirectory: () => false })) as any);
             vi.mocked(fs.readFile).mockResolvedValue('content');
