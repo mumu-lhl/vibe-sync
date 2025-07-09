@@ -100,8 +100,8 @@ sync_to:
 
     try {
         fs.writeFileSync(configPath, defaultConfigContent);
-        console.log(chalk.green('vibesync.yaml created successfully!'));
+        console.log(chalk.bold.green('vibesync.yaml created successfully!'));
     } catch (error) {
-        console.error(chalk.red('Failed to create vibesync.yaml:'), error);
+        console.error(chalk.bold.red('Failed to create vibesync.yaml:'), error);
     }
 }
