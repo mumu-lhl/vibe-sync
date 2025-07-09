@@ -27,12 +27,12 @@ export const presets: Preset[] = [
     },
     {
         name: 'Kilo Code',
-        path: '.kilocode/rules/',
+        path: '.kilocode/',
         type: 'directory',
     },
     {
         name: 'Roo Code',
-        path: '.roo/rules/',
+        path: '.roo/',
         type: 'directory',
     },
 ];

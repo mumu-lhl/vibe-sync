@@ -22,6 +22,7 @@ export type VibeSyncConfig = z.infer<typeof VibeSyncConfigSchema>;
 export type SyncObject = z.infer<typeof SyncObjectSchema>;
 
 export type ResolvedSyncObject = {
+    name?: string;
     path: string;
     type: 'file' | 'directory';
 };
@@ -29,12 +30,14 @@ export type ResolvedSyncObject = {
 export function resolveSyncObject(syncObject: SyncObject): ResolvedSyncObject {
     let p: string;
     let type: 'file' | 'directory' | undefined;
+    let name: string | undefined;
 
     if (typeof syncObject === 'string') {
         const preset = presets.find((pr: { name: string; }) => pr.name === syncObject);
         if (preset) {
             p = preset.path;
             type = preset.type;
+            name = preset.name;
         } else {
             p = syncObject;
         }
@@ -55,6 +58,7 @@ export function resolveSyncObject(syncObject: SyncObject): ResolvedSyncObject {
     }
 
     return {
+        name: name,
         path: absolutePath,
         type: type,
     };

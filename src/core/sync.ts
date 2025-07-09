@@ -18,6 +18,76 @@ async function getAllFiles(dirPath: string): Promise<string[]> {
 async function copySourceToDest(source: ResolvedSyncObject, dest: ResolvedSyncObject) {
     console.log(chalk.blue(`Syncing from ${source.path} to: ${dest.path}`));
 
+    // Special handling for Cline
+    if (source.name === 'Cline' || dest.name === 'Cline') {
+        let handled = false;
+        const isClineDest = dest.name === 'Cline';
+
+        const subdirMappings = isClineDest
+            ? [
+                  { src: 'rules', dest: '.clinerules' },
+                  { src: 'workflows', dest: path.join('.clinerules', 'workflows') },
+              ]
+            : [
+                  { src: '.clinerules', dest: 'rules' },
+                  { src: path.join('.clinerules', 'workflows'), dest: 'workflows' },
+              ];
+
+        for (const mapping of subdirMappings) {
+            const sourceSubdir = path.join(source.path, mapping.src);
+            const destSubdir = path.join(dest.path, mapping.dest);
+
+            try {
+                const sourceStat = await fs.stat(sourceSubdir);
+
+                if (sourceStat.isDirectory()) {
+                    console.log(chalk.blue(`Syncing subdirectory: ${sourceSubdir} to ${destSubdir}`));
+                    await fs.mkdir(destSubdir, { recursive: true });
+                    await fs.cp(sourceSubdir, destSubdir, { recursive: true, force: true });
+                    handled = true;
+                }
+            } catch (error) {
+                // If a directory doesn't exist, stat will throw. We can ignore this.
+            }
+        }
+
+        if (handled) {
+            console.log(chalk.green(`Subdirectory sync for Cline completed.`));
+            return;
+        }
+    }
+
+    // Special handling for Kilo Code and Roo Code
+    if (source.name === 'Kilo Code' || source.name === 'Roo Code') {
+        const subdirs = ['rules', 'workflows'];
+        let handled = false;
+
+        for (const subdir of subdirs) {
+            const sourceSubdir = path.join(source.path, subdir);
+            const destSubdir = path.join(dest.path, subdir);
+
+            try {
+                const sourceStat = await fs.stat(sourceSubdir);
+                const destStat = await fs.stat(destSubdir);
+
+                if (sourceStat.isDirectory() && destStat.isDirectory()) {
+                    console.log(chalk.blue(`Syncing subdirectory: ${sourceSubdir} to ${destSubdir}`));
+                    await fs.cp(sourceSubdir, destSubdir, { recursive: true, force: true });
+                    handled = true;
+                }
+            } catch (error) {
+                // If a directory doesn't exist, stat will throw. We can ignore this.
+            }
+        }
+
+        if (handled) {
+            // If we performed a sync of subdirectories, we might want to skip the main copy.
+            // Let's assume for now that if subdirectories are synced, the top-level sync is not needed.
+            console.log(chalk.green(`Subdirectory sync for ${source.name} completed.`));
+            return;
+        }
+    }
+
     // Ensure the parent directory of the destination exists
     const destParentDir = dest.type === 'directory' ? dest.path : path.dirname(dest.path);
     await fs.mkdir(destParentDir, { recursive: true });
