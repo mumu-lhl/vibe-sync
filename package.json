@@ -11,7 +11,9 @@
     "test": "vitest",
     "build": "tsc",
     "start": "node src/index.ts",
-    "lint": "oxlint"
+    "lint": "oxlint",
+    "format": "prettier src/ --write",
+    "format:check": "prettier src/ --check"
   },
   "keywords": [],
   "author": "",
@@ -21,6 +23,7 @@
     "@types/js-yaml": "^4.0.9",
     "@types/node": "^24.0.10",
     "oxlint": "^1.6.0",
+    "prettier": "3.6.2",
     "typescript": "^5.8.3",
     "vitest": "^3.2.4"
   },
