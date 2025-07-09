@@ -2,7 +2,6 @@ export type Preset = {
     name: string;
     path: string;
     type: 'file' | 'directory';
-    excludedPaths?: string[];
 };
 
 export const presets: Preset[] = [
@@ -25,7 +24,6 @@ export const presets: Preset[] = [
         name: 'Cline',
         path: '.clinerules/',
         type: 'directory',
-        excludedPaths: ['workflows'],
     },
     {
         name: 'Kilo Code',

@@ -28,29 +28,13 @@ async function copySourceToDest(source: ResolvedSyncObject, dest: ResolvedSyncOb
 
         const allFiles = await getAllFiles(source.path);
 
-        const includedFiles = allFiles.filter(filePath => {
-            const relativePath = path.relative(source.path, filePath);
-            if (relativePath === '') return false; // Should not happen with getAllFiles logic
-
-            if (!source.excludedPaths || source.excludedPaths.length === 0) {
-                return true;
-            }
-            const isExcluded = source.excludedPaths.some(excluded =>
-                relativePath.startsWith(excluded)
-            );
-            if (isExcluded) {
-                console.log(chalk.yellow(`Excluding from merge: ${relativePath}`));
-            }
-            return !isExcluded;
-        });
-
-        const contentPromises = includedFiles.map(filePath => fs.readFile(filePath, 'utf-8'));
+        const contentPromises = allFiles.map(filePath => fs.readFile(filePath, 'utf-8'));
         const contents = await Promise.all(contentPromises);
 
         const mergedContent = contents.join('\n');
 
         await fs.writeFile(dest.path, mergedContent);
-        console.log(chalk.green(`Successfully merged ${includedFiles.length} files into ${dest.path}`));
+        console.log(chalk.green(`Successfully merged ${allFiles.length} files into ${dest.path}`));
         return;
     }
 
@@ -58,22 +42,6 @@ async function copySourceToDest(source: ResolvedSyncObject, dest: ResolvedSyncOb
     const copyOptions = {
         recursive: true,
         force: true, // Allow overwriting
-        filter: (srcPath: string) => {
-            if (!source.excludedPaths || source.excludedPaths.length === 0) {
-                return true; // No exclusions, copy everything
-            }
-            const relativePath = path.relative(source.path, srcPath);
-            if (relativePath === '') {
-                return true; // Always include the root source directory itself
-            }
-            const isExcluded = source.excludedPaths.some(excluded =>
-                relativePath.startsWith(excluded)
-            );
-            if (isExcluded) {
-                console.log(chalk.yellow(`Excluding: ${relativePath}`));
-            }
-            return !isExcluded;
-        },
     };
 
     let finalDestPath = dest.path;

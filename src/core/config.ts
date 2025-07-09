@@ -24,20 +24,17 @@ export type SyncObject = z.infer<typeof SyncObjectSchema>;
 export type ResolvedSyncObject = {
     path: string;
     type: 'file' | 'directory';
-    excludedPaths?: string[];
 };
 
 export function resolveSyncObject(syncObject: SyncObject): ResolvedSyncObject {
     let p: string;
     let type: 'file' | 'directory' | undefined;
-    let excludedPaths: string[] | undefined;
 
     if (typeof syncObject === 'string') {
         const preset = presets.find((pr: { name: string; }) => pr.name === syncObject);
         if (preset) {
             p = preset.path;
             type = preset.type;
-            excludedPaths = preset.excludedPaths;
         } else {
             p = syncObject;
         }
@@ -60,7 +57,6 @@ export function resolveSyncObject(syncObject: SyncObject): ResolvedSyncObject {
     return {
         path: absolutePath,
         type: type,
-        excludedPaths: excludedPaths,
     };
 }
 
