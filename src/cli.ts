@@ -1,11 +1,12 @@
 import { Command } from 'commander';
 import { sync } from './core/sync.ts';
 import { generateConfig as generateConfig } from './core/config.ts';
+import pkg from '../package.json' with { type: "json" };
 
 const program = new Command();
 
 program
-    .version('1.0.0')
+    .version(pkg.version)
     .description('vibe-sync - A CLI tool to sync vibe coding rules and workflows across vibe coding different tools.')
     .action(() => {
         program.help();
