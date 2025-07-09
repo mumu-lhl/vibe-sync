@@ -2,3 +2,6 @@ node_modules/
 dist/
 
 PRD.md
+
+# VS Code
+.vscode/settings.json
