@@ -64,20 +64,20 @@ export function resolveSyncObject(syncObject: SyncObject): ResolvedSyncObject {
     };
 }
 
-export function loadConfig(): VibeSyncConfig {
-    const configPath = path.join(process.cwd(), 'vibesync.yaml');
+export function loadConfig(filePath: string = 'vibesync.yaml'): VibeSyncConfig {
+    const configPath = path.resolve(process.cwd(), filePath);
     try {
         const fileContents = fs.readFileSync(configPath, 'utf8');
         const config = yaml.load(fileContents);
         return VibeSyncConfigSchema.parse(config);
     } catch (e) {
-        console.error(chalk.red('Error reading or parsing vibesync.yaml:'), e);
+        console.error(chalk.red(`Error reading or parsing ${configPath}:`), e);
         process.exit(1);
     }
 }
 
-export async function generateConfig() {
-    const configPath = path.join(process.cwd(), 'vibesync.yaml');
+export async function generateConfig(filePath: string = 'vibesync.yaml') {
+    const configPath = path.resolve(process.cwd(), filePath);
     const defaultConfigContent = `# Vibe Sync Configuration
 
 version: 1
@@ -94,14 +94,14 @@ sync_to:
   - "Roo Code"`;
 
     if (fs.existsSync(configPath)) {
-        console.log(chalk.yellow('vibesync.yaml already exists. Aborting initialization.'));
+        console.log(chalk.yellow(`${filePath} already exists. Aborting initialization.`));
         return;
     }
 
     try {
         fs.writeFileSync(configPath, defaultConfigContent);
-        console.log(chalk.bold.green('vibesync.yaml created successfully!'));
+        console.log(chalk.bold.green(`${filePath} created successfully!`));
     } catch (error) {
-        console.error(chalk.bold.red('Failed to create vibesync.yaml:'), error);
+        console.error(chalk.bold.red(`Failed to create ${filePath}:`), error);
     }
 }

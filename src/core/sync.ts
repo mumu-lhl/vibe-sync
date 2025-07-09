@@ -135,9 +135,9 @@ async function copySourceToDest(source: ResolvedSyncObject, dest: ResolvedSyncOb
     await fs.cp(source.path, finalDestPath, copyOptions);
 }
 
-export async function sync() {
+export async function sync(filePath?: string) {
     try {
-        const config = loadConfig();
+        const config = loadConfig(filePath);
 
         console.log(chalk.bold.cyan('Starting sync...\n'));
 

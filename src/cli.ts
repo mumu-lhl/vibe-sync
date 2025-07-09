@@ -15,15 +15,17 @@ program
 program
     .command('sync')
     .description('Sync vibe coding rules and workflows.')
-    .action(async () => {
-        await sync();
+    .option('-c, --config <path>', 'Path to the configuration file', 'vibesync.yaml')
+    .action(async (options) => {
+        await sync(options.config);
     });
 
 program
     .command('init')
     .description('Generate a vibesync.yaml configuration file.')
-    .action(async () => {
-        await generateConfig();
+    .option('-c, --config <path>', 'Path to the configuration file', 'vibesync.yaml')
+    .action(async (options) => {
+        await generateConfig(options.config);
     });
 
 export function run() {
