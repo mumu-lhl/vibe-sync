@@ -157,7 +157,7 @@ describe('Sync Tests', () => {
                 await sync();
 
                 const expectedSource = path.join(mockSource.path, 'rules');
-                const expectedDest = path.join(clineDest.path, '.clinerules');
+                const expectedDest = path.join(clineDest.path, '');
                 expect(fs.cp).toHaveBeenCalledWith(expectedSource, expectedDest, { recursive: true, force: true });
                 expect(console.log).toHaveBeenCalledWith(chalk.green('Subdirectory sync for Cline completed.'));
             });
@@ -169,7 +169,7 @@ describe('Sync Tests', () => {
                     .mockReturnValueOnce(kiloSource)
                     .mockReturnValueOnce(mockDest);
 
-                // Simulate that both source and dest have 'rules' and 'workflows' subdirs
+                // Simulate that source has 'rules' and 'workflows' subdirs
                 vi.mocked(fs.stat).mockResolvedValue({ isDirectory: () => true } as any);
 
                 await sync();
@@ -191,7 +191,7 @@ describe('Sync Tests', () => {
                     .mockReturnValueOnce(rooSource)
                     .mockReturnValueOnce(mockDest);
 
-                // Simulate that both source and dest have 'rules' and 'workflows' subdirs
+                // Simulate that source has 'rules' and 'workflows' subdirs
                 vi.mocked(fs.stat).mockResolvedValue({ isDirectory: () => true } as any);
 
                 await sync();
@@ -204,6 +204,60 @@ describe('Sync Tests', () => {
                 expect(fs.cp).toHaveBeenCalledWith(expectedSourceRules, expectedDestRules, { recursive: true, force: true });
                 expect(fs.cp).toHaveBeenCalledWith(expectedSourceWorkflows, expectedDestWorkflows, { recursive: true, force: true });
                 expect(console.log).toHaveBeenCalledWith(chalk.green('Subdirectory sync for Roo Code completed.'));
+            });
+
+            it('should correctly sync from Cline to Kilo Code', async () => {
+                const clineSource = { name: 'Cline', path: '.clinerules/', type: 'directory' as const };
+                const kiloDest = { name: 'Kilo Code', path: '.kilocode/', type: 'directory' as const };
+
+                vi.mocked(config.loadConfig).mockReturnValue({ version: 1, sync_from: 'Cline', sync_to: ['Kilo Code'] });
+                vi.mocked(config.resolveSyncObject)
+                    .mockReturnValueOnce(clineSource)
+                    .mockReturnValueOnce(kiloDest);
+
+                // Simulate that the source directory exists
+                vi.mocked(fs.stat).mockResolvedValue({ isDirectory: () => true } as any);
+
+                await sync();
+
+                const expectedSource = path.join(clineSource.path, '');
+                const expectedDest = path.join(kiloDest.path, 'rules');
+
+                expect(fs.cp).toHaveBeenCalledWith(expectedSource, expectedDest, { recursive: true, force: true });
+                expect(console.log).toHaveBeenCalledWith(chalk.green('Subdirectory sync for Cline completed.'));
+            });
+
+            it('should skip Cline special handling and merge to file when dest is a file', async () => {
+                const clineSource = { name: 'Cline', path: '.clinerules/', type: 'directory' as const };
+                const fileDest = { name: 'GEMINI.md', path: '/fake/dest/GEMINI.md', type: 'file' as const };
+                const files = ['rule1.md', 'rule2.md'];
+
+                vi.mocked(config.loadConfig).mockReturnValue({ version: 1, sync_from: 'Cline', sync_to: ['GEMINI.md'] });
+                vi.mocked(config.resolveSyncObject)
+                    .mockReturnValueOnce(clineSource)
+                    .mockReturnValueOnce(fileDest);
+
+                // Simulate that a source subdir exists, which would normally trigger special handling
+                vi.mocked(fs.stat).mockImplementation(async (p) => {
+                    if (p === path.join(clineSource.path, 'rules')) {
+                        return { isDirectory: () => true } as any;
+                    }
+                    throw new Error('ENOENT');
+                });
+
+                // Simulate files for the merge operation
+                vi.mocked(fs.readdir).mockResolvedValue(files.map(f => ({ name: f, isDirectory: () => false })) as any);
+                vi.mocked(fs.readFile).mockResolvedValue('content');
+
+                await sync();
+
+                // Assert that the merge logic was called
+                expect(fs.writeFile).toHaveBeenCalledWith(fileDest.path, 'content\ncontent');
+                expect(console.log).toHaveBeenCalledWith(chalk.green(`Successfully merged 2 files into ${fileDest.path}`));
+
+                // Assert that special handling's fs.cp was NOT called
+                expect(fs.cp).not.toHaveBeenCalled();
+                expect(console.log).not.toHaveBeenCalledWith(chalk.green('Subdirectory sync for Cline completed.'));
             });
         });
     });

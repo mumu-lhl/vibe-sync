@@ -19,19 +19,19 @@ async function copySourceToDest(source: ResolvedSyncObject, dest: ResolvedSyncOb
     console.log(chalk.blue(`Syncing from ${source.path} to: ${dest.path}`));
 
     // Special handling for Cline
-    if (source.name === 'Cline' || dest.name === 'Cline') {
+    if ((source.name === 'Cline' || dest.name === 'Cline') && dest.type !== 'file') {
         let handled = false;
         const isClineDest = dest.name === 'Cline';
 
         const subdirMappings = isClineDest
             ? [
-                  { src: 'rules', dest: '.clinerules' },
-                  { src: 'workflows', dest: path.join('.clinerules', 'workflows') },
-              ]
+                { src: 'rules', dest: '' },
+                { src: 'workflows', dest: 'workflows' },
+            ]
             : [
-                  { src: '.clinerules', dest: 'rules' },
-                  { src: path.join('.clinerules', 'workflows'), dest: 'workflows' },
-              ];
+                { src: '', dest: 'rules' },
+                { src: 'workflows', dest: 'workflows' },
+            ];
 
         for (const mapping of subdirMappings) {
             const sourceSubdir = path.join(source.path, mapping.src);
@@ -58,7 +58,7 @@ async function copySourceToDest(source: ResolvedSyncObject, dest: ResolvedSyncOb
     }
 
     // Special handling for Kilo Code and Roo Code
-    if (source.name === 'Kilo Code' || source.name === 'Roo Code') {
+    if ((source.name === 'Kilo Code' || source.name === 'Roo Code') && dest.type !== 'file') {
         const subdirs = ['rules', 'workflows'];
         let handled = false;
 
@@ -68,10 +68,10 @@ async function copySourceToDest(source: ResolvedSyncObject, dest: ResolvedSyncOb
 
             try {
                 const sourceStat = await fs.stat(sourceSubdir);
-                const destStat = await fs.stat(destSubdir);
 
-                if (sourceStat.isDirectory() && destStat.isDirectory()) {
+                if (sourceStat.isDirectory()) {
                     console.log(chalk.blue(`Syncing subdirectory: ${sourceSubdir} to ${destSubdir}`));
+                    await fs.mkdir(destSubdir, { recursive: true });
                     await fs.cp(sourceSubdir, destSubdir, { recursive: true, force: true });
                     handled = true;
                 }
