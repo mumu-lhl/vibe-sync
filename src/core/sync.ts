@@ -78,7 +78,7 @@ async function copySourceToDest(source: ResolvedSyncObject, dest: ResolvedSyncOb
 
     let finalDestPath = dest.path;
     if (source.type === 'file' && dest.type === 'directory') {
-        finalDestPath = path.join(dest.path, path.basename(source.path));
+        finalDestPath = path.join(dest.path, 'vibesync.md');
     }
 
     await fs.cp(source.path, finalDestPath, copyOptions);
