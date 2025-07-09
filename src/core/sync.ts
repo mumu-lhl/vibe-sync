@@ -1,45 +1,56 @@
-import { loadConfig, type SyncObject } from './config.ts';
+import { loadConfig, resolveSyncObject, ResolvedSyncObject } from './config.ts';
 import fs from 'fs/promises';
 import path from 'path';
 
-async function resolveSyncObject(syncObject: SyncObject): Promise<string> {
-    if (typeof syncObject === 'string') {
-        // For string-based sources, we can have a map or a switch statement
-        // to handle different predefined services.
-        // For this example, we'll just return a placeholder.
-        console.log(`Resolving from predefined source: ${syncObject}`);
-        return `Simulated content from ${syncObject}`;
-    } else if (typeof syncObject === 'object' && 'custom' in syncObject) {
-        // For custom sources, we'll treat the value as a file path.
-        const filePath = path.resolve(syncObject.custom);
-        console.log(`Resolving from custom file source: ${filePath}`);
-        return await fs.readFile(filePath, 'utf-8');
-    }
-    throw new Error('Invalid sync object for source');
-}
+async function copySourceToDest(source: ResolvedSyncObject, dest: ResolvedSyncObject) {
+    console.log(`Syncing from ${source.path} to: ${dest.path}`);
 
-async function pushToSyncObject(syncObject: SyncObject, content: string): Promise<void> {
-    if (typeof syncObject === 'string') {
-    } else {
-        throw new Error('Invalid sync object');
+    // Ensure the parent directory of the destination exists
+    const destParentDir = dest.type === 'directory' ? dest.path : path.dirname(dest.path);
+    await fs.mkdir(destParentDir, { recursive: true });
+
+    const copyOptions = {
+        recursive: true,
+        force: true, // Allow overwriting
+        filter: (srcPath: string) => {
+            if (!source.excludedPaths || source.excludedPaths.length === 0) {
+                return true; // No exclusions, copy everything
+            }
+            const relativePath = path.relative(source.path, srcPath);
+            if (relativePath === '') {
+                return true; // Always include the root source directory itself
+            }
+            const isExcluded = source.excludedPaths.some(excluded =>
+                relativePath.startsWith(excluded)
+            );
+            if (isExcluded) {
+                console.log(`Excluding: ${relativePath}`);
+            }
+            return !isExcluded;
+        },
+    };
+
+    let finalDestPath = dest.path;
+    if (source.type === 'file' && dest.type === 'directory') {
+        finalDestPath = path.join(dest.path, path.basename(source.path));
     }
-    // Simulate pushing content
-    console.log(`Content pushed: "${content}"`);
+
+    await fs.cp(source.path, finalDestPath, copyOptions);
 }
 
 export async function sync() {
     const config = loadConfig();
     console.log('Configuration loaded:');
-    console.log(config);
+    console.dir(config, { depth: null });
 
     console.log('\nStarting sync...');
 
     try {
-        const sourceContent = await resolveSyncObject(config.sync_from);
-        console.log(`Successfully fetched content from source.`);
+        const source = resolveSyncObject(config.sync_from);
+        const destinations = config.sync_to.map(resolveSyncObject);
 
-        for (const dest of config.sync_to) {
-            await pushToSyncObject(dest, sourceContent);
+        for (const dest of destinations) {
+            await copySourceToDest(source, dest);
         }
 
         console.log('\nSync completed successfully!');

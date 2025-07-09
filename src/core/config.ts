@@ -2,6 +2,7 @@ import { z } from 'zod';
 import fs from 'fs';
 import yaml from 'js-yaml';
 import path from 'path';
+import { presets } from './presets.ts';
 
 export const SyncObjectSchema = z.union([
     z.string(),
@@ -18,6 +19,49 @@ export const VibeSyncConfigSchema = z.object({
 
 export type VibeSyncConfig = z.infer<typeof VibeSyncConfigSchema>;
 export type SyncObject = z.infer<typeof SyncObjectSchema>;
+
+export type ResolvedSyncObject = {
+    path: string;
+    type: 'file' | 'directory';
+    excludedPaths?: string[];
+};
+
+export function resolveSyncObject(syncObject: SyncObject): ResolvedSyncObject {
+    let p: string;
+    let type: 'file' | 'directory' | undefined;
+    let excludedPaths: string[] | undefined;
+
+    if (typeof syncObject === 'string') {
+        const preset = presets.find((pr: { name: string; }) => pr.name === syncObject);
+        if (preset) {
+            p = preset.path;
+            type = preset.type;
+            excludedPaths = preset.excludedPaths;
+        } else {
+            p = syncObject;
+        }
+    } else { // It's an object { custom: '...' }
+        p = syncObject.custom;
+    }
+
+    const absolutePath = path.resolve(process.cwd(), p);
+
+    if (type === undefined) {
+        try {
+            const stats = fs.statSync(absolutePath);
+            type = stats.isDirectory() ? 'directory' : 'file';
+        } catch (e) {
+            // Doesn't exist, guess based on trailing slash
+            type = p.endsWith('/') || p.endsWith('\\') ? 'directory' : 'file';
+        }
+    }
+
+    return {
+        path: absolutePath,
+        type: type,
+        excludedPaths: excludedPaths,
+    };
+}
 
 export function loadConfig(): VibeSyncConfig {
     const configPath = path.join(process.cwd(), 'vibesync.yaml');
