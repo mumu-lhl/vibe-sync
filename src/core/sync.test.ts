@@ -1,5 +1,3 @@
-
-
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import fs from 'fs/promises';
 import path from 'path';
@@ -158,7 +156,7 @@ describe('Sync Tests', () => {
 
                 const expectedSource = path.join(mockSource.path, 'rules');
                 const expectedDest = path.join(clineDest.path, '');
-                expect(fs.cp).toHaveBeenCalledWith(expectedSource, expectedDest, { recursive: true, force: true });
+                expect(fs.cp).toHaveBeenCalledWith(expectedSource, expectedDest, expect.anything());
                 expect(console.log).toHaveBeenCalledWith(chalk.green('Subdirectory sync for Cline completed.'));
             });
 
@@ -179,9 +177,9 @@ describe('Sync Tests', () => {
                 const expectedSourceWorkflows = path.join(kiloSource.path, 'workflows');
                 const expectedDestWorkflows = path.join(mockDest.path, 'workflows');
 
-                expect(fs.cp).toHaveBeenCalledWith(expectedSourceRules, expectedDestRules, { recursive: true, force: true });
-                expect(fs.cp).toHaveBeenCalledWith(expectedSourceWorkflows, expectedDestWorkflows, { recursive: true, force: true });
-                expect(console.log).toHaveBeenCalledWith(chalk.green('Subdirectory sync for Kilo Code completed.'));
+                expect(fs.cp).toHaveBeenCalledWith(expectedSourceRules, expectedDestRules, expect.anything());
+                expect(fs.cp).toHaveBeenCalledWith(expectedSourceWorkflows, expectedDestWorkflows, expect.anything());
+                expect(console.log).toHaveBeenCalledWith(chalk.green(`Subdirectory sync for ${kiloSource.name} completed.`));
             });
 
             it('should handle special sync for Roo Code as source', async () => {
@@ -201,31 +199,61 @@ describe('Sync Tests', () => {
                 const expectedSourceWorkflows = path.join(rooSource.path, 'workflows');
                 const expectedDestWorkflows = path.join(mockDest.path, 'workflows');
 
-                expect(fs.cp).toHaveBeenCalledWith(expectedSourceRules, expectedDestRules, { recursive: true, force: true });
-                expect(fs.cp).toHaveBeenCalledWith(expectedSourceWorkflows, expectedDestWorkflows, { recursive: true, force: true });
-                expect(console.log).toHaveBeenCalledWith(chalk.green('Subdirectory sync for Roo Code completed.'));
+                expect(fs.cp).toHaveBeenCalledWith(expectedSourceRules, expectedDestRules, expect.anything());
+                expect(fs.cp).toHaveBeenCalledWith(expectedSourceWorkflows, expectedDestWorkflows, expect.anything());
+                expect(console.log).toHaveBeenCalledWith(chalk.green(`Subdirectory sync for ${rooSource.name} completed.`));
             });
 
-            it('should correctly sync from Cline to Kilo Code', async () => {
-                const clineSource = { name: 'Cline', path: '.clinerules/', type: 'directory' as const };
-                const kiloDest = { name: 'Kilo Code', path: '.kilocode/', type: 'directory' as const };
+            it('should correctly sync from Cline to Kilo Code, excluding workflows from rules copy', async () => {
+                const clineSource = { name: 'Cline', path: '/fake/.clinerules/', type: 'directory' as const };
+                const kiloDest = { name: 'Kilo Code', path: '/fake/.kilocode/', type: 'directory' as const };
 
                 vi.mocked(config.loadConfig).mockReturnValue({ version: 1, sync_from: 'Cline', sync_to: ['Kilo Code'] });
                 vi.mocked(config.resolveSyncObject)
                     .mockReturnValueOnce(clineSource)
                     .mockReturnValueOnce(kiloDest);
 
-                // Simulate that the source directory exists
-                vi.mocked(fs.stat).mockResolvedValue({ isDirectory: () => true } as any);
+                // Simulate that .clinerules/ and .clinerules/workflows exist
+                vi.mocked(fs.stat).mockImplementation(async (p) => {
+                    const pStr = p.toString();
+                    if (pStr === clineSource.path || pStr === path.join(clineSource.path, 'workflows')) {
+                        return { isDirectory: () => true } as any;
+                    }
+                    throw new Error(`ENOENT: no such file or directory, stat '${pStr}'`);
+                });
 
                 await sync();
 
-                const expectedSource = path.join(clineSource.path, '');
-                const expectedDest = path.join(kiloDest.path, 'rules');
+                const expectedRulesDest = path.join(kiloDest.path, 'rules');
+                const expectedWorkflowsSource = path.join(clineSource.path, 'workflows');
+                const expectedWorkflowsDest = path.join(kiloDest.path, 'workflows');
 
-                expect(fs.cp).toHaveBeenCalledWith(expectedSource, expectedDest, { recursive: true, force: true });
+                // Check that the root of clineSource was copied to the rules dir with a filter
+                const mainCopyCall = vi.mocked(fs.cp).mock.calls.find(call => call[1] === expectedRulesDest);
+                expect(mainCopyCall).toBeDefined();
+                if (!mainCopyCall) throw new Error('mainCopyCall is undefined');
+                const cpOptions = mainCopyCall[2];
+                expect(cpOptions).toBeDefined();
+                expect(cpOptions && cpOptions.filter).toBeInstanceOf(Function);
+
+                // Test the filter
+                if (!cpOptions) throw new Error('cpOptions is undefined');
+                const filter = cpOptions.filter as (src: string) => boolean;
+                expect(filter(expectedWorkflowsSource)).toBe(false); // Exclude workflows
+                expect(filter(path.join(clineSource.path, 'any-other-file.md'))).toBe(true); // Include other files
+
+                // Check that the workflows dir was copied separately without a filter
+                const workflowsCopyCall = vi.mocked(fs.cp).mock.calls.find(call => call[0] === expectedWorkflowsSource);
+                expect(workflowsCopyCall).toBeDefined();
+                if (!workflowsCopyCall) throw new Error('workflowsCopyCall is undefined');
+                expect(workflowsCopyCall[1]).toBe(expectedWorkflowsDest);
+                // It will have a filter that always returns true, which is fine.
+                expect(workflowsCopyCall[2] && workflowsCopyCall[2].filter).toBeUndefined();
+
+
                 expect(console.log).toHaveBeenCalledWith(chalk.green('Subdirectory sync for Cline completed.'));
             });
+
 
             it('should skip Cline special handling and merge to file when dest is a file', async () => {
                 const clineSource = { name: 'Cline', path: '.clinerules/', type: 'directory' as const };

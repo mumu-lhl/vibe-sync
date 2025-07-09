@@ -43,7 +43,20 @@ async function copySourceToDest(source: ResolvedSyncObject, dest: ResolvedSyncOb
                 if (sourceStat.isDirectory()) {
                     console.log(chalk.blue(`Syncing subdirectory: ${sourceSubdir} to ${destSubdir}`));
                     await fs.mkdir(destSubdir, { recursive: true });
-                    await fs.cp(sourceSubdir, destSubdir, { recursive: true, force: true });
+
+                    const cpOptions: import('fs').CopyOptions = {
+                        recursive: true,
+                        force: true,
+                    };
+
+                    if (!isClineDest && mapping.src === '') {
+                        cpOptions.filter = (src) => {
+                            const workflowsDir = path.join(source.path, 'workflows');
+                            return src !== workflowsDir;
+                        };
+                    }
+
+                    await fs.cp(sourceSubdir, destSubdir, cpOptions);
                     handled = true;
                 }
             } catch (error) {
