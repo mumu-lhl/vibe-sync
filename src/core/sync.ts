@@ -123,11 +123,11 @@ async function copySourceToDest(source: ResolvedSyncObject, dest: ResolvedSyncOb
 }
 
 export async function sync() {
-    const config = loadConfig();
-
-    console.log(chalk.bold.cyan('Starting sync...\n'));
-
     try {
+        const config = loadConfig();
+
+        console.log(chalk.bold.cyan('Starting sync...\n'));
+
         const source = resolveSyncObject(config.sync_from);
         const destinations = config.sync_to.map(resolveSyncObject);
 
