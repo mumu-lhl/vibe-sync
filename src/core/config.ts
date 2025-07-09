@@ -40,8 +40,8 @@ export function resolveSyncObject(syncObject: SyncObject): ResolvedSyncObject {
         } else {
             p = syncObject;
         }
-    } else { // It's an object { custom: '...' }
-        p = syncObject.custom;
+    } else {
+        throw new Error('Invalid preset sync object');
     }
 
     const absolutePath = path.resolve(process.cwd(), p);

@@ -1,6 +1,18 @@
-import { loadConfig, resolveSyncObject, ResolvedSyncObject } from './config.ts';
+import { loadConfig, resolveSyncObject, type ResolvedSyncObject } from './config.ts';
 import fs from 'fs/promises';
 import path from 'path';
+
+// Helper function to recursively get all file paths in a directory
+async function getAllFiles(dirPath: string): Promise<string[]> {
+    const dirents = await fs.readdir(dirPath, { withFileTypes: true });
+    const filePromises = dirents.map(async (dirent) => {
+        const res = path.resolve(dirPath, dirent.name);
+        return dirent.isDirectory() ? getAllFiles(res) : [res];
+    });
+    const files = await Promise.all(filePromises);
+    return files.flat();
+}
+
 
 async function copySourceToDest(source: ResolvedSyncObject, dest: ResolvedSyncObject) {
     console.log(`Syncing from ${source.path} to: ${dest.path}`);
@@ -9,6 +21,39 @@ async function copySourceToDest(source: ResolvedSyncObject, dest: ResolvedSyncOb
     const destParentDir = dest.type === 'directory' ? dest.path : path.dirname(dest.path);
     await fs.mkdir(destParentDir, { recursive: true });
 
+    // Handle directory to file merge
+    if (source.type === 'directory' && dest.type === 'file') {
+        console.log(`Merging files from directory ${source.path} into file ${dest.path}`);
+
+        const allFiles = await getAllFiles(source.path);
+
+        const includedFiles = allFiles.filter(filePath => {
+            const relativePath = path.relative(source.path, filePath);
+            if (relativePath === '') return false; // Should not happen with getAllFiles logic
+
+            if (!source.excludedPaths || source.excludedPaths.length === 0) {
+                return true;
+            }
+            const isExcluded = source.excludedPaths.some(excluded =>
+                relativePath.startsWith(excluded)
+            );
+            if (isExcluded) {
+                console.log(`Excluding from merge: ${relativePath}`);
+            }
+            return !isExcluded;
+        });
+
+        const contentPromises = includedFiles.map(filePath => fs.readFile(filePath, 'utf-8'));
+        const contents = await Promise.all(contentPromises);
+        
+        const mergedContent = contents.join('\n');
+
+        await fs.writeFile(dest.path, mergedContent);
+        console.log(`Successfully merged ${includedFiles.length} files into ${dest.path}`);
+        return;
+    }
+
+    // Existing logic for file->file, file->dir, dir->dir
     const copyOptions = {
         recursive: true,
         force: true, // Allow overwriting
@@ -40,8 +85,6 @@ async function copySourceToDest(source: ResolvedSyncObject, dest: ResolvedSyncOb
 
 export async function sync() {
     const config = loadConfig();
-    console.log('Configuration loaded:');
-    console.dir(config, { depth: null });
 
     console.log('\nStarting sync...');
 

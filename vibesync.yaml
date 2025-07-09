@@ -2,7 +2,11 @@
 
 version: 1
 
-sync_from: "gemini"
+sync_from: "Gemini"
 
 sync_to:
-  - "claude code"
+  - "Claude Code"
+  - "Cline"
+  - "Kilo Code"
+  - "Jules"
+  - "Roo Code"
