@@ -1,5 +1,5 @@
 {
-  "name": "vibe-sync",
+  "name": "@mumulhl/vibe-sync",
   "version": "0.1.0",
   "description": "A CLI tool to sync vibe coding rules and workflows across different vibe coding tools.",
   "main": "src/index.ts",

@@ -8,19 +8,19 @@ To install `vibe-sync`, ensure you have Node.js and pnpm installed. Then, run th
 
 ```bash
 # npm
-npm install -g vibe-sync
+npm install -g @mumulhl/vibe-sync
 
 # yarn
-yarn global add vibe-sync
+yarn global add @mumulhl/vibe-sync
 
 # pnpm
-pnpm install -g vibe-sync
+pnpm install -g @mumulhl/vibe-sync
 
 # bun
-bun install -g vibe-sync
+bun install -g @mumulhl/vibe-sync
 
 # deno
-deno install -g npm:vibe-sync
+deno install -g npm:@mumulhl/vibe-sync
 ```
 
 ## Usage
