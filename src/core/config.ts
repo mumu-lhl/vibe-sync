@@ -3,6 +3,7 @@ import fs from 'fs';
 import yaml from 'js-yaml';
 import path from 'path';
 import { presets } from './presets.ts';
+import chalk from 'chalk';
 
 export const SyncObjectSchema = z.union([
     z.string(),
@@ -70,7 +71,7 @@ export function loadConfig(): VibeSyncConfig {
         const config = yaml.load(fileContents);
         return VibeSyncConfigSchema.parse(config);
     } catch (e) {
-        console.error('Error reading or parsing vibesync.yaml:', e);
+        console.error(chalk.red('Error reading or parsing vibesync.yaml:'), e);
         process.exit(1);
     }
 }

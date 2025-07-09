@@ -1,6 +1,7 @@
 import { loadConfig, resolveSyncObject, type ResolvedSyncObject } from './config.ts';
 import fs from 'fs/promises';
 import path from 'path';
+import chalk from 'chalk';
 
 // Helper function to recursively get all file paths in a directory
 async function getAllFiles(dirPath: string): Promise<string[]> {
@@ -15,7 +16,7 @@ async function getAllFiles(dirPath: string): Promise<string[]> {
 
 
 async function copySourceToDest(source: ResolvedSyncObject, dest: ResolvedSyncObject) {
-    console.log(`Syncing from ${source.path} to: ${dest.path}`);
+    console.log(chalk.blue(`Syncing from ${source.path} to: ${dest.path}`));
 
     // Ensure the parent directory of the destination exists
     const destParentDir = dest.type === 'directory' ? dest.path : path.dirname(dest.path);
@@ -23,7 +24,7 @@ async function copySourceToDest(source: ResolvedSyncObject, dest: ResolvedSyncOb
 
     // Handle directory to file merge
     if (source.type === 'directory' && dest.type === 'file') {
-        console.log(`Merging files from directory ${source.path} into file ${dest.path}`);
+        console.log(chalk.blue(`Merging files from directory ${source.path} into file ${dest.path}`));
 
         const allFiles = await getAllFiles(source.path);
 
@@ -38,18 +39,18 @@ async function copySourceToDest(source: ResolvedSyncObject, dest: ResolvedSyncOb
                 relativePath.startsWith(excluded)
             );
             if (isExcluded) {
-                console.log(`Excluding from merge: ${relativePath}`);
+                console.log(chalk.yellow(`Excluding from merge: ${relativePath}`));
             }
             return !isExcluded;
         });
 
         const contentPromises = includedFiles.map(filePath => fs.readFile(filePath, 'utf-8'));
         const contents = await Promise.all(contentPromises);
-        
+
         const mergedContent = contents.join('\n');
 
         await fs.writeFile(dest.path, mergedContent);
-        console.log(`Successfully merged ${includedFiles.length} files into ${dest.path}`);
+        console.log(chalk.green(`Successfully merged ${includedFiles.length} files into ${dest.path}`));
         return;
     }
 
@@ -69,7 +70,7 @@ async function copySourceToDest(source: ResolvedSyncObject, dest: ResolvedSyncOb
                 relativePath.startsWith(excluded)
             );
             if (isExcluded) {
-                console.log(`Excluding: ${relativePath}`);
+                console.log(chalk.yellow(`Excluding: ${relativePath}`));
             }
             return !isExcluded;
         },
@@ -86,7 +87,7 @@ async function copySourceToDest(source: ResolvedSyncObject, dest: ResolvedSyncOb
 export async function sync() {
     const config = loadConfig();
 
-    console.log('\nStarting sync...');
+    console.log(chalk.bold.cyan('Starting sync...\n'));
 
     try {
         const source = resolveSyncObject(config.sync_from);
@@ -96,9 +97,9 @@ export async function sync() {
             await copySourceToDest(source, dest);
         }
 
-        console.log('\nSync completed successfully!');
+        console.log(chalk.bold.green('\nSync completed successfully!'));
     } catch (error) {
-        console.error('\nSync failed:', error);
+        console.error(chalk.bold.red('\nSync failed:'), error);
         process.exit(1);
     }
 }
