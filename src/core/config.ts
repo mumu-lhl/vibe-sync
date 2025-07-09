@@ -75,3 +75,33 @@ export function loadConfig(): VibeSyncConfig {
         process.exit(1);
     }
 }
+
+export async function generateConfig() {
+    const configPath = path.join(process.cwd(), 'vibesync.yaml');
+    const defaultConfigContent = `# Vibe Sync Configuration
+
+version: 1
+
+sync_from: "Gemini"
+# sync_from:
+#   - custom: xxx/xxx/xxx
+
+sync_to:
+  - "Claude Code"
+  - "Cline"
+  - "Kilo Code"
+  - "Jules"
+  - "Roo Code"`;
+
+    if (fs.existsSync(configPath)) {
+        console.log(chalk.yellow('vibesync.yaml already exists. Aborting initialization.'));
+        return;
+    }
+
+    try {
+        fs.writeFileSync(configPath, defaultConfigContent);
+        console.log(chalk.green('vibesync.yaml created successfully!'));
+    } catch (error) {
+        console.error(chalk.red('Failed to create vibesync.yaml:'), error);
+    }
+}

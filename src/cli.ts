@@ -1,5 +1,7 @@
 import { Command } from 'commander';
 import { sync } from './core/sync.ts';
+import { generateConfig as generateConfig } from './core/config.ts';
+
 const program = new Command();
 
 program
@@ -14,6 +16,13 @@ program
     .description('Sync vibe coding rules and workflows.')
     .action(async () => {
         await sync();
+    });
+
+program
+    .command('init')
+    .description('Generate a vibesync.yaml configuration file.')
+    .action(async () => {
+        await generateConfig();
     });
 
 export function run() {
