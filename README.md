@@ -4,7 +4,7 @@ A CLI tool to sync vibe coding rules and workflows across different vibe coding 
 
 ## Installation
 
-To install `vibe-sync`, ensure you have Node.js and pnpm installed. Then, run the following command:
+To install `vibe-sync`, ensure you have Node.js (>= 23.6.0). Then, run the following command:
 
 ```bash
 # npm
