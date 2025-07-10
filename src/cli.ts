@@ -38,6 +38,18 @@ program
     await generateConfig(options.config);
   });
 
+program
+  .command("check")
+  .description("Check if vibe coding rules synchronization is complete.")
+  .option(
+    "-c, --config <path>",
+    "Path to the configuration file",
+    "vibesync.yaml",
+  )
+  .action(() => {
+    console.log("Check command executed. (Not yet implemented)");
+  });
+
 export function run() {
   program.parse(process.argv);
 }

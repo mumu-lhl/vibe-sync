@@ -1,9 +1,6 @@
 import type { ResolvedSyncObject } from "../config.ts";
 import type { SyncHandler } from "./handler.ts";
-import {
-  getAllFiles,
-  type SyncAction,
-} from "../sync-operations.ts";
+import { getAllFiles, type SyncAction } from "../sync-operations.ts";
 
 export class DirectoryToFileMergeHandler implements SyncHandler {
   canHandle(source: ResolvedSyncObject, dest: ResolvedSyncObject): boolean {
