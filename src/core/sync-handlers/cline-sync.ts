@@ -57,7 +57,11 @@ export class ClineSyncHandler implements SyncHandler {
         // Dir doesn't exist, ignore.
       }
     }
-    console.log(chalk.green(`Subdirectory sync for Cline completed.`));
+    const sourceName = source.name || source.path;
+    const destName = dest.name || dest.path;
+    console.log(
+      chalk.green(`Sync from ${sourceName} to ${destName} completed.`),
+    );
   }
 
   async check(

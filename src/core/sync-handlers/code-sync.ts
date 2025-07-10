@@ -57,7 +57,11 @@ export class CodeSyncHandler implements SyncHandler {
         // Dir doesn't exist, ignore.
       }
     }
-    console.log(chalk.green(`Subdirectory sync for ${source.name} completed.`));
+    const sourceName = source.name || source.path;
+    const destName = dest.name || dest.path;
+    console.log(
+      chalk.green(`Sync from ${sourceName} to ${destName} completed.`),
+    );
   }
 
   private async syncToSpecialDest(
@@ -76,7 +80,11 @@ export class CodeSyncHandler implements SyncHandler {
       finalDestPath = path.join(rulesDestPath, "vibesync.md");
     }
     await fs.cp(source.path, finalDestPath, { recursive: true, force: true });
-    console.log(chalk.green(`Sync to ${dest.name} completed.`));
+    const sourceName = source.name || source.path;
+    const destName = dest.name || dest.path;
+    console.log(
+      chalk.green(`Sync from ${sourceName} to ${destName} completed.`),
+    );
   }
 
   async check(
