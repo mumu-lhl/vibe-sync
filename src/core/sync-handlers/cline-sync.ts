@@ -1,8 +1,8 @@
 import type { ResolvedSyncObject } from "../config.ts";
 import type { SyncHandler } from "./handler.ts";
+import type { SyncAction } from "../sync-operations.ts";
 import fs from "fs/promises";
 import path from "path";
-import chalk from "chalk";
 
 export class ClineSyncHandler implements SyncHandler {
   canHandle(source: ResolvedSyncObject, dest: ResolvedSyncObject): boolean {
@@ -11,10 +11,11 @@ export class ClineSyncHandler implements SyncHandler {
     );
   }
 
-  async sync(
+  async plan(
     source: ResolvedSyncObject,
     dest: ResolvedSyncObject,
-  ): Promise<void> {
+  ): Promise<SyncAction[]> {
+    const actions: SyncAction[] = [];
     const isClineDest = dest.name === "Cline";
     const subdirMappings = isClineDest
       ? [
@@ -33,12 +34,11 @@ export class ClineSyncHandler implements SyncHandler {
       try {
         const sourceStat = await fs.stat(sourceSubdir);
         if (sourceStat.isDirectory()) {
-          console.log(
-            chalk.blue(
-              `Syncing subdirectory: ${sourceSubdir} to ${destSubdir}`,
-            ),
-          );
-          await fs.mkdir(destSubdir, { recursive: true });
+          actions.push({
+            type: "mkdir",
+            directory: destSubdir,
+            options: { recursive: true },
+          });
 
           const cpOptions: import("fs").CopyOptions = {
             recursive: true,
@@ -52,17 +52,18 @@ export class ClineSyncHandler implements SyncHandler {
             };
           }
 
-          await fs.cp(sourceSubdir, destSubdir, cpOptions);
+          actions.push({
+            type: "copy",
+            source: sourceSubdir,
+            destination: destSubdir,
+            options: cpOptions,
+          });
         }
       } catch {
         // Dir doesn't exist, ignore.
       }
     }
-    const sourceName = source.name || source.path;
-    const destName = dest.name || dest.path;
-    console.log(
-      chalk.green(`Sync from ${sourceName} to ${destName} completed.`),
-    );
+    return actions;
   }
 
   async check(

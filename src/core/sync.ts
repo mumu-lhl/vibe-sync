@@ -5,16 +5,25 @@ import {
 } from "./config.ts";
 import chalk from "chalk";
 import { syncHandlers } from "./sync-handlers/index.ts";
+import { executeAction } from "./sync-operations.ts";
 
 async function copySourceToDest(
   source: ResolvedSyncObject,
   dest: ResolvedSyncObject,
 ) {
-  console.log(chalk.blue(`Syncing from ${source.path} to: ${dest.path}`));
+  const sourceName = source.name || source.path;
+  const destName = dest.name || dest.path;
+  console.log(chalk.blue(`Syncing from ${sourceName} to ${destName}`));
 
   for (const handler of syncHandlers) {
     if (await handler.canHandle(source, dest)) {
-      await handler.sync(source, dest);
+      const actions = await handler.plan(source, dest);
+      for (const action of actions) {
+        await executeAction(action);
+      }
+      console.log(
+        chalk.green(`Sync from ${sourceName} to ${destName} completed.`),
+      );
       return;
     }
   }

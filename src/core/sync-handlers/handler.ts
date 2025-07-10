@@ -1,4 +1,5 @@
 import type { ResolvedSyncObject } from "../config.ts";
+import type { SyncAction } from "../sync-operations.ts";
 
 export interface SyncHandler {
   /**
@@ -11,12 +12,15 @@ export interface SyncHandler {
   ): Promise<boolean> | boolean;
 
   /**
-   * Executes the synchronization from source to destination.
+   * Creates a synchronization plan.
    * @param {ResolvedSyncObject} source - The source object.
    * @param {ResolvedSyncObject} dest - The destination object.
-   * @returns {Promise<void>}
+   * @returns {Promise<SyncAction[]>} - A list of actions to be executed.
    */
-  sync(source: ResolvedSyncObject, dest: ResolvedSyncObject): Promise<void>;
+  plan(
+    source: ResolvedSyncObject,
+    dest: ResolvedSyncObject,
+  ): Promise<SyncAction[]>;
 
   /**
    * Checks if the source and destination are already in sync.

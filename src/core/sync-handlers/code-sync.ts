@@ -1,8 +1,8 @@
 import type { ResolvedSyncObject } from "../config.ts";
 import type { SyncHandler } from "./handler.ts";
+import type { SyncAction } from "../sync-operations.ts";
 import fs from "fs/promises";
 import path from "path";
-import chalk from "chalk";
 
 export class CodeSyncHandler implements SyncHandler {
   private isSpecialCode(name: string): boolean {
@@ -15,23 +15,24 @@ export class CodeSyncHandler implements SyncHandler {
     return (isSpecialSource || isSpecialDest) && dest.type !== "file";
   }
 
-  async sync(
+  async plan(
     source: ResolvedSyncObject,
     dest: ResolvedSyncObject,
-  ): Promise<void> {
+  ): Promise<SyncAction[]> {
     const isSpecialSource = !!source.name && this.isSpecialCode(source.name);
 
     if (isSpecialSource) {
-      await this.syncSubdirs(source, dest);
+      return this.planSubdirs(source, dest);
     } else {
-      await this.syncToSpecialDest(source, dest);
+      return this.planToSpecialDest(source, dest);
     }
   }
 
-  private async syncSubdirs(
+  private async planSubdirs(
     source: ResolvedSyncObject,
     dest: ResolvedSyncObject,
-  ): Promise<void> {
+  ): Promise<SyncAction[]> {
+    const actions: SyncAction[] = [];
     const subdirs = ["rules", "workflows"];
     for (const subdir of subdirs) {
       const sourceSubdir = path.join(source.path, subdir);
@@ -39,49 +40,50 @@ export class CodeSyncHandler implements SyncHandler {
       try {
         const sourceStat = await fs.stat(sourceSubdir);
         if (sourceStat.isDirectory()) {
-          console.log(
-            chalk.blue(
-              `Syncing subdirectory: ${sourceSubdir} to ${destSubdir}`,
-            ),
-          );
-          await fs.mkdir(destSubdir, { recursive: true });
-          await fs.cp(sourceSubdir, destSubdir, {
-            recursive: true,
-            force: true,
+          actions.push({
+            type: "mkdir",
+            directory: destSubdir,
+            options: { recursive: true },
+          });
+          actions.push({
+            type: "copy",
+            source: sourceSubdir,
+            destination: destSubdir,
+            options: { recursive: true, force: true },
           });
         }
       } catch {
         // Dir doesn't exist, ignore.
       }
     }
-    const sourceName = source.name || source.path;
-    const destName = dest.name || dest.path;
-    console.log(
-      chalk.green(`Sync from ${sourceName} to ${destName} completed.`),
-    );
+    return actions;
   }
 
-  private async syncToSpecialDest(
+  private async planToSpecialDest(
     source: ResolvedSyncObject,
     dest: ResolvedSyncObject,
-  ): Promise<void> {
+  ): Promise<SyncAction[]> {
+    const actions: SyncAction[] = [];
     const rulesDestPath = path.join(dest.path, "rules");
-    console.log(
-      chalk.blue(
-        `Syncing to ${dest.name}'s "rules" directory: ${rulesDestPath}`,
-      ),
-    );
-    await fs.mkdir(rulesDestPath, { recursive: true });
+    actions.push({
+      type: "mkdir",
+      directory: rulesDestPath,
+      options: { recursive: true },
+    });
+
     let finalDestPath = rulesDestPath;
     if (source.type === "file") {
       finalDestPath = path.join(rulesDestPath, "vibesync.md");
     }
-    await fs.cp(source.path, finalDestPath, { recursive: true, force: true });
-    const sourceName = source.name || source.path;
-    const destName = dest.name || dest.path;
-    console.log(
-      chalk.green(`Sync from ${sourceName} to ${destName} completed.`),
-    );
+
+    actions.push({
+      type: "copy",
+      source: source.path,
+      destination: finalDestPath,
+      options: { recursive: true, force: true },
+    });
+
+    return actions;
   }
 
   async check(
