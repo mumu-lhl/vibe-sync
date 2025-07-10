@@ -16,10 +16,7 @@ async function getAllFiles(dirPath: string): Promise<string[]> {
 }
 
 export class DirectoryToFileMergeHandler implements SyncHandler {
-  canHandle(
-    source: ResolvedSyncObject,
-    dest: ResolvedSyncObject,
-  ): boolean {
+  canHandle(source: ResolvedSyncObject, dest: ResolvedSyncObject): boolean {
     return source.type === "directory" && dest.type === "file";
   }
 

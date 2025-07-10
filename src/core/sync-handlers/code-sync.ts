@@ -9,10 +9,7 @@ export class CodeSyncHandler implements SyncHandler {
     return name === "Kilo Code" || name === "Roo Code";
   }
 
-  canHandle(
-    source: ResolvedSyncObject,
-    dest: ResolvedSyncObject,
-  ): boolean {
+  canHandle(source: ResolvedSyncObject, dest: ResolvedSyncObject): boolean {
     const isSpecialSource = !!source.name && this.isSpecialCode(source.name);
     const isSpecialDest = !!dest.name && this.isSpecialCode(dest.name);
     return (isSpecialSource || isSpecialDest) && dest.type !== "file";

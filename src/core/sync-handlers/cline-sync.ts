@@ -5,11 +5,10 @@ import path from "path";
 import chalk from "chalk";
 
 export class ClineSyncHandler implements SyncHandler {
-  canHandle(
-    source: ResolvedSyncObject,
-    dest: ResolvedSyncObject,
-  ): boolean {
-    return (source.name === "Cline" || dest.name === "Cline") && dest.type !== "file";
+  canHandle(source: ResolvedSyncObject, dest: ResolvedSyncObject): boolean {
+    return (
+      (source.name === "Cline" || dest.name === "Cline") && dest.type !== "file"
+    );
   }
 
   async sync(
@@ -35,7 +34,9 @@ export class ClineSyncHandler implements SyncHandler {
         const sourceStat = await fs.stat(sourceSubdir);
         if (sourceStat.isDirectory()) {
           console.log(
-            chalk.blue(`Syncing subdirectory: ${sourceSubdir} to ${destSubdir}`),
+            chalk.blue(
+              `Syncing subdirectory: ${sourceSubdir} to ${destSubdir}`,
+            ),
           );
           await fs.mkdir(destSubdir, { recursive: true });
 
