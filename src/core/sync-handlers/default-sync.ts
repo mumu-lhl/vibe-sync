@@ -1,6 +1,10 @@
 import type { ResolvedSyncObject } from "../config.ts";
 import type { SyncHandler } from "./handler.ts";
-import type { SyncAction } from "../sync-operations.ts";
+import {
+  areDirsEqual,
+  areFilesEqual,
+  type SyncAction,
+} from "../sync-operations.ts";
 import path from "path";
 
 export class DefaultSyncHandler implements SyncHandler {
@@ -49,8 +53,20 @@ export class DefaultSyncHandler implements SyncHandler {
     source: ResolvedSyncObject,
     dest: ResolvedSyncObject,
   ): Promise<boolean> {
-    // TODO: Implement check logic
-    console.warn("Check logic not implemented for DefaultSyncHandler");
+    if (source.type === "directory" && dest.type === "directory") {
+      return areDirsEqual(source.path, dest.path);
+    }
+
+    if (source.type === "file" && dest.type === "file") {
+      return areFilesEqual(source.path, dest.path);
+    }
+
+    if (source.type === "file" && dest.type === "directory") {
+      const destFile = path.join(dest.path, "vibesync.md");
+      return areFilesEqual(source.path, destFile);
+    }
+
+    // Should not be reached if canHandle is correct
     return false;
   }
 }

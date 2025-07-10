@@ -1,5 +1,6 @@
 import { Command } from "commander";
 import { sync } from "./core/sync.ts";
+import { check } from "./core/check.ts";
 import { generateConfig } from "./core/config.ts";
 import pkg from "../package.json" with { type: "json" };
 
@@ -46,8 +47,8 @@ program
     "Path to the configuration file",
     "vibesync.yaml",
   )
-  .action(() => {
-    console.log("Check command executed. (Not yet implemented)");
+  .action(async (options) => {
+    await check(options.config);
   });
 
 export function run() {
