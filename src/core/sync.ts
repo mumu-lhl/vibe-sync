@@ -3,11 +3,8 @@ import {
   resolveSyncObject,
   type ResolvedSyncObject,
 } from "./config.ts";
-import fs from "fs/promises";
-import path from "path";
 import chalk from "chalk";
-import { handleSpecialPaths } from "./path-handler.ts";
-import { handleDirectoryToFileMerge } from "./content-handler.ts";
+import { syncHandlers } from "./sync-handlers/index.ts";
 
 async function copySourceToDest(
   source: ResolvedSyncObject,
@@ -15,32 +12,15 @@ async function copySourceToDest(
 ) {
   console.log(chalk.blue(`Syncing from ${source.path} to: ${dest.path}`));
 
-  if (await handleSpecialPaths(source, dest)) {
-    return;
+  for (const handler of syncHandlers) {
+    if (await handler.canHandle(source, dest)) {
+      await handler.sync(source, dest);
+      return;
+    }
   }
 
-  // Ensure the parent directory of the destination exists
-  const destParentDir =
-    dest.type === "directory" ? dest.path : path.dirname(dest.path);
-  await fs.mkdir(destParentDir, { recursive: true });
-
-  if (await handleDirectoryToFileMerge(source, dest)) {
-    return;
-  }
-
-  // Standard copy logic for file-to-file, file-to-dir, and dir-to-dir
-  const copyOptions = {
-    recursive: true,
-    force: true, // Allow overwriting
-  };
-
-  let finalDestPath = dest.path;
-  if (source.type === "file" && dest.type === "directory") {
-    finalDestPath = path.join(dest.path, "vibesync.md");
-  }
-
-  await fs.cp(source.path, finalDestPath, copyOptions);
-  console.log(chalk.green(`Synced to ${finalDestPath}`));
+  // This should not be reached if DefaultSyncHandler is correctly configured
+  throw new Error("No suitable sync handler found.");
 }
 
 export async function sync(filePath?: string) {
