@@ -54,7 +54,9 @@ export async function check(filePath?: string) {
       console.log(chalk.bold.green("\nAll items are in sync!"));
     } else {
       console.log(
-        chalk.bold.red("\nSome items are out of sync. Please run 'vibe-sync sync' to fix."),
+        chalk.bold.red(
+          "\nSome items are out of sync. Please run 'vibe-sync sync' to fix.",
+        ),
       );
       process.exit(1);
     }

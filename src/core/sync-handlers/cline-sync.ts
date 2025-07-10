@@ -101,7 +101,11 @@ export class ClineSyncHandler implements SyncHandler {
           }
         }
       } catch (error) {
-        if (error instanceof Error && "code" in error && error.code === "ENOENT") {
+        if (
+          error instanceof Error &&
+          "code" in error &&
+          error.code === "ENOENT"
+        ) {
           // If source doesn't exist, check if dest also doesn't exist.
           try {
             await fs.stat(destSubdir);
