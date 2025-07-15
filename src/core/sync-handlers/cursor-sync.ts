@@ -9,6 +9,9 @@ import {
 
 export class CursorSyncHandler implements SyncHandler {
   canHandle(source: ResolvedSyncObject, dest: ResolvedSyncObject): boolean {
+    if (source.type === "file" && dest.name === "Cursor") {
+      return false;
+    }
     return (
       (source.name === "Cursor" || dest.name === "Cursor") &&
       dest.type !== "file"
@@ -26,7 +29,7 @@ export class CursorSyncHandler implements SyncHandler {
 
   async plan(
     source: ResolvedSyncObject,
-    dest: ResolvedSyncObject,
+    dest: ResolvedSyncObject
   ): Promise<SyncAction[]> {
     const isCursorDest = dest.name === "Cursor";
     const subdirMappings = this.getSubdirMappings(isCursorDest);
@@ -36,7 +39,7 @@ export class CursorSyncHandler implements SyncHandler {
   async check(
     source: ResolvedSyncObject,
     dest: ResolvedSyncObject,
-    verbose?: boolean,
+    verbose?: boolean
   ): Promise<boolean> {
     const isCursorDest = dest.name === "Cursor";
     const subdirMappings = this.getSubdirMappings(isCursorDest);

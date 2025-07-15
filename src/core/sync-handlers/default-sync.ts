@@ -15,7 +15,7 @@ export class DefaultSyncHandler implements SyncHandler {
 
   async plan(
     source: ResolvedSyncObject,
-    dest: ResolvedSyncObject,
+    dest: ResolvedSyncObject
   ): Promise<SyncAction[]> {
     const actions: SyncAction[] = [];
     const destParentDir =
@@ -34,9 +34,14 @@ export class DefaultSyncHandler implements SyncHandler {
 
     let finalDestPath = dest.path;
     if (source.type === "file" && dest.type === "directory") {
+      let filename = "vibesync.md";
+      if (dest.name === "Cursor") {
+        filename = "vibesync.mdc"; // Cursor uses .mdc extension
+      }
+
       // When copying a single file to a directory, copy it *into* the directory.
       // We'll use a default name, but this could be configured in the future.
-      finalDestPath = path.join(dest.path, "vibesync.md");
+      finalDestPath = path.join(dest.path, filename);
     }
 
     actions.push({
@@ -52,7 +57,7 @@ export class DefaultSyncHandler implements SyncHandler {
   async check(
     source: ResolvedSyncObject,
     dest: ResolvedSyncObject,
-    verbose?: boolean,
+    verbose?: boolean
   ): Promise<boolean> {
     if (source.type === "directory" && dest.type === "directory") {
       return areDirsEqual(source.path, dest.path, { verbose });
@@ -63,7 +68,12 @@ export class DefaultSyncHandler implements SyncHandler {
     }
 
     if (source.type === "file" && dest.type === "directory") {
-      const destFile = path.join(dest.path, "vibesync.md");
+      let filename = "vibesync.md";
+      if (dest.name === "Cursor") {
+        filename = "vibesync.mdc"; // Cursor uses .mdc extension
+      }
+
+      const destFile = path.join(dest.path, filename);
       return areFilesEqual(source.path, destFile, verbose);
     }
 
