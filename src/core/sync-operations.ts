@@ -96,6 +96,7 @@ export async function areDirsEqual(
   dir2: string,
   options: {
     filter?: (file: string) => boolean;
+    rename?: (file: string) => string;
   } = {},
 ): Promise<boolean> {
   try {
@@ -109,22 +110,33 @@ export async function areDirsEqual(
     ]);
 
     const relativeFiles1 = files1.map((file) => path.relative(dir1, file));
-    const relativeFiles2 = files2.map((file) => path.relative(dir2, file));
+    let relativeFiles2 = files2.map((file) => path.relative(dir2, file));
+
+    if (options.rename) {
+      relativeFiles2 = relativeFiles2.map(options.rename);
+    }
 
     if (relativeFiles1.length !== relativeFiles2.length) {
       return false;
     }
 
-    relativeFiles1.sort();
-    relativeFiles2.sort();
+    const fileMap1 = new Map(
+      relativeFiles1.map((file, i) => [file, files1[i]]),
+    );
+    const fileMap2 = new Map(
+      relativeFiles2.map((file, i) => [file, files2[i]]),
+    );
 
-    for (let i = 0; i < relativeFiles1.length; i++) {
-      if (relativeFiles1[i] !== relativeFiles2[i]) {
+    if (fileMap1.size !== fileMap2.size) {
+      return false;
+    }
+
+    for (const [relativeFile, fullPath1] of fileMap1.entries()) {
+      const fullPath2 = fileMap2.get(relativeFile);
+      if (!fullPath2) {
         return false;
       }
-      const filePath1 = path.join(dir1, relativeFiles1[i]);
-      const filePath2 = path.join(dir2, relativeFiles2[i]);
-      if (!(await areFilesEqual(filePath1, filePath2))) {
+      if (!(await areFilesEqual(fullPath1, fullPath2))) {
         return false;
       }
     }

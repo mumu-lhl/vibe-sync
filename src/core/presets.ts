@@ -35,4 +35,9 @@ export const presets: Preset[] = [
     path: ".roo/",
     type: "directory",
   },
+  {
+    name: "Cursor",
+    path: ".cursor/rules/",
+    type: "directory",
+  },
 ];
