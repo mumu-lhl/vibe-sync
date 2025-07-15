@@ -83,12 +83,23 @@ async function getFileHash(filePath: string): Promise<string> {
 export async function areFilesEqual(
   path1: string,
   path2: string,
+  verbose?: boolean,
 ): Promise<boolean> {
   const [hash1, hash2] = await Promise.all([
     getFileHash(path1),
     getFileHash(path2),
   ]);
-  return hash1 === hash2;
+  const areEqual = hash1 === hash2;
+  if (verbose && !areEqual) {
+    console.log(
+      chalk.yellow(
+        `    - File content mismatch: ${path.basename(
+          path1,
+        )} vs ${path.basename(path2)}`,
+      ),
+    );
+  }
+  return areEqual;
 }
 
 export async function areDirsEqual(
@@ -97,46 +108,68 @@ export async function areDirsEqual(
   options: {
     filter?: (file: string) => boolean;
     rename?: (file: string) => string;
+    verbose?: boolean;
   } = {},
 ): Promise<boolean> {
   try {
+    if (options.verbose) {
+      console.log(chalk.gray(`  Comparing directories: ${dir1} and ${dir2}`));
+    }
     const [files1, files2] = await Promise.all([
       getAllFiles(dir1).then((files) =>
         options.filter ? files.filter(options.filter) : files,
       ),
-      getAllFiles(dir2).then((files) =>
-        options.filter ? files.filter(options.filter) : files,
-      ),
+      getAllFiles(dir2), // Don't filter dir2 yet
     ]);
 
     const relativeFiles1 = files1.map((file) => path.relative(dir1, file));
-    let relativeFiles2 = files2.map((file) => path.relative(dir2, file));
-
-    if (options.rename) {
-      relativeFiles2 = relativeFiles2.map(options.rename);
-    }
-
-    if (relativeFiles1.length !== relativeFiles2.length) {
-      return false;
-    }
-
     const fileMap1 = new Map(
       relativeFiles1.map((file, i) => [file, files1[i]]),
     );
+
     const fileMap2 = new Map(
-      relativeFiles2.map((file, i) => [file, files2[i]]),
+      files2.map((file) => [path.relative(dir2, file), file]),
     );
 
-    if (fileMap1.size !== fileMap2.size) {
-      return false;
+    // Now, construct the expected destination file list based on source
+    const expectedDestFiles = new Set<string>();
+    for (const relativeFile of fileMap1.keys()) {
+      const destRelative = options.rename
+        ? options.rename(relativeFile)
+        : relativeFile;
+      expectedDestFiles.add(destRelative);
     }
 
-    for (const [relativeFile, fullPath1] of fileMap1.entries()) {
-      const fullPath2 = fileMap2.get(relativeFile);
-      if (!fullPath2) {
+    // Check for extra files in destination
+    for (const relativeFile of fileMap2.keys()) {
+      if (!expectedDestFiles.has(relativeFile)) {
+        if (options.verbose) {
+          console.log(
+            chalk.yellow(`    - Extra file in destination: ${relativeFile}`),
+          );
+        }
         return false;
       }
-      if (!(await areFilesEqual(fullPath1, fullPath2))) {
+    }
+
+    // Check for missing files and content mismatch
+    for (const [relativeFile, fullPath1] of fileMap1.entries()) {
+      const destRelativeFile = options.rename
+        ? options.rename(relativeFile)
+        : relativeFile;
+      const fullPath2 = fileMap2.get(destRelativeFile);
+
+      if (!fullPath2) {
+        if (options.verbose) {
+          console.log(
+            chalk.yellow(
+              `    - Missing file in destination: ${destRelativeFile}`,
+            ),
+          );
+        }
+        return false;
+      }
+      if (!(await areFilesEqual(fullPath1, fullPath2, options.verbose))) {
         return false;
       }
     }

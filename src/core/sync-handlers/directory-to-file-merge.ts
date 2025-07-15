@@ -34,6 +34,7 @@ export class DirectoryToFileMergeHandler implements SyncHandler {
   async check(
     source: ResolvedSyncObject,
     dest: ResolvedSyncObject,
+    verbose?: boolean,
   ): Promise<boolean> {
     const tempDir = await fs.mkdtemp(path.join(os.tmpdir(), "vibesync-"));
     const tempMergedFilePath = path.join(tempDir, "merged-file");
@@ -62,7 +63,7 @@ export class DirectoryToFileMergeHandler implements SyncHandler {
       );
       await fs.writeFile(tempMergedFilePath, contents.join("\n"));
 
-      return areFilesEqual(tempMergedFilePath, dest.path);
+      return areFilesEqual(tempMergedFilePath, dest.path, verbose);
     } finally {
       await fs.rm(tempDir, { recursive: true, force: true });
     }

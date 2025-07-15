@@ -87,6 +87,7 @@ export async function checkWithRename(
   source: ResolvedSyncObject,
   dest: ResolvedSyncObject,
   subdirMappings: SubdirMapping[],
+  verbose?: boolean,
 ): Promise<boolean> {
   for (const mapping of subdirMappings) {
     const sourcePath = path.join(source.path, mapping.src);
@@ -113,7 +114,11 @@ export async function checkWithRename(
       }
 
       if (sourceStat.isDirectory() && destStat.isDirectory()) {
-        const options = { rename: mapping.rename, filter: mapping.filter };
+        const options = {
+          rename: mapping.rename,
+          filter: mapping.filter,
+          verbose,
+        };
         if (!(await areDirsEqual(sourcePath, destPath, options))) {
           return false;
         }

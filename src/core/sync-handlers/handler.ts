@@ -26,7 +26,12 @@ export interface SyncHandler {
    * Checks if the source and destination are already in sync.
    * @param {ResolvedSyncObject} source - The source object.
    * @param {ResolvedSyncObject} dest - The destination object.
+   * @param {boolean} [verbose] - Optional flag for verbose logging.
    * @returns {Promise<boolean>} - True if they are in sync, otherwise false.
    */
-  check(source: ResolvedSyncObject, dest: ResolvedSyncObject): Promise<boolean>;
+  check(
+    source: ResolvedSyncObject,
+    dest: ResolvedSyncObject,
+    verbose?: boolean,
+  ): Promise<boolean>;
 }

@@ -47,8 +47,9 @@ program
     "Path to the configuration file",
     "vibesync.yaml",
   )
+  .option("-v, --verbose", "Show verbose debug information")
   .action(async (options) => {
-    await check(options.config);
+    await check(options.config, options.verbose);
   });
 
 export function run() {

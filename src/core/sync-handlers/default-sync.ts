@@ -52,18 +52,19 @@ export class DefaultSyncHandler implements SyncHandler {
   async check(
     source: ResolvedSyncObject,
     dest: ResolvedSyncObject,
+    verbose?: boolean,
   ): Promise<boolean> {
     if (source.type === "directory" && dest.type === "directory") {
-      return areDirsEqual(source.path, dest.path);
+      return areDirsEqual(source.path, dest.path, { verbose });
     }
 
     if (source.type === "file" && dest.type === "file") {
-      return areFilesEqual(source.path, dest.path);
+      return areFilesEqual(source.path, dest.path, verbose);
     }
 
     if (source.type === "file" && dest.type === "directory") {
       const destFile = path.join(dest.path, "vibesync.md");
-      return areFilesEqual(source.path, destFile);
+      return areFilesEqual(source.path, destFile, verbose);
     }
 
     // Should not be reached if canHandle is correct

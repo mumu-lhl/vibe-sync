@@ -63,6 +63,7 @@ export class ClineSyncHandler implements SyncHandler {
   async check(
     source: ResolvedSyncObject,
     dest: ResolvedSyncObject,
+    verbose?: boolean,
   ): Promise<boolean> {
     const isClineDest = dest.name === "Cline";
     const isCursorDest = dest.name === "Cursor";
@@ -71,6 +72,6 @@ export class ClineSyncHandler implements SyncHandler {
       isCursorDest,
       source,
     );
-    return checkWithRename(source, dest, subdirMappings);
+    return checkWithRename(source, dest, subdirMappings, verbose);
   }
 }

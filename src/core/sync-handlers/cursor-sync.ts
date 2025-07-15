@@ -36,9 +36,10 @@ export class CursorSyncHandler implements SyncHandler {
   async check(
     source: ResolvedSyncObject,
     dest: ResolvedSyncObject,
+    verbose?: boolean,
   ): Promise<boolean> {
     const isCursorDest = dest.name === "Cursor";
     const subdirMappings = this.getSubdirMappings(isCursorDest);
-    return checkWithRename(source, dest, subdirMappings);
+    return checkWithRename(source, dest, subdirMappings, verbose);
   }
 }

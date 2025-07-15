@@ -9,14 +9,17 @@ import { syncHandlers } from "./sync-handlers/index.ts";
 async function checkSourceAgainstDest(
   source: ResolvedSyncObject,
   dest: ResolvedSyncObject,
+  verbose?: boolean,
 ): Promise<boolean> {
   const sourceName = source.name || source.path;
   const destName = dest.name || dest.path;
-  console.log(chalk.blue(`Checking sync for ${sourceName} to ${destName}`));
+  if (verbose) {
+    console.log(chalk.blue(`Checking sync for ${sourceName} to ${destName}`));
+  }
 
   for (const handler of syncHandlers) {
     if (await handler.canHandle(source, dest)) {
-      return await handler.check(source, dest);
+      return await handler.check(source, dest, verbose);
     }
   }
 
@@ -24,9 +27,13 @@ async function checkSourceAgainstDest(
   throw new Error("No suitable sync handler found.");
 }
 
-export async function check(filePath?: string) {
+export async function check(filePath?: string, verbose?: boolean) {
   try {
     const config = loadConfig(filePath);
+    if (verbose) {
+      console.log(chalk.yellow("Verbose mode enabled."));
+      console.log(chalk.yellow("Loaded configuration:"), config);
+    }
 
     console.log(chalk.bold.cyan("Starting checks...\n"));
 
@@ -35,7 +42,7 @@ export async function check(filePath?: string) {
 
     let allInSync = true;
     for (const dest of destinations) {
-      const inSync = await checkSourceAgainstDest(source, dest);
+      const inSync = await checkSourceAgainstDest(source, dest, verbose);
       const sourceName = source.name || source.path;
       const destName = dest.name || dest.path;
       if (inSync) {
