@@ -23,7 +23,14 @@ export interface MergeAction {
   destination: string;
 }
 
-export type SyncAction = CopyAction | MkdirAction | MergeAction;
+export interface TransformAction {
+  type: "transform";
+  source: string;
+  destination: string;
+  transform: (content: string) => string;
+}
+
+export type SyncAction = CopyAction | MkdirAction | MergeAction | TransformAction;
 
 // Action execution
 export async function executeAction(action: SyncAction): Promise<void> {
@@ -52,6 +59,14 @@ export async function executeAction(action: SyncAction): Promise<void> {
         action.sources.map((file) => fs.readFile(file, "utf-8")),
       );
       await fs.writeFile(action.destination, contents.join("\n"));
+      break;
+    case "transform":
+      console.log(
+        chalk.blue(`Transforming: ${action.source} to ${action.destination}`),
+      );
+      const sourceContent = await fs.readFile(action.source, "utf-8");
+      const transformedContent = action.transform(sourceContent);
+      await fs.writeFile(action.destination, transformedContent);
       break;
   }
 }
@@ -83,14 +98,24 @@ async function getFileHash(filePath: string): Promise<string> {
 export async function areFilesEqual(
   path1: string,
   path2: string,
-  verbose?: boolean,
+  options?: {
+    transform?: (content: string) => string;
+    verbose?: boolean;
+  },
 ): Promise<boolean> {
   const [hash1, hash2] = await Promise.all([
     getFileHash(path1),
     getFileHash(path2),
   ]);
+  if (options?.transform) {
+    const content1 = await fs.readFile(path1, "utf-8");
+    const transformedContent1 = options.transform(content1);
+    const transformedHash1 = createHash("sha256").update(transformedContent1)
+      .digest("hex");
+    return transformedHash1 === hash2;
+  }
   const areEqual = hash1 === hash2;
-  if (verbose && !areEqual) {
+  if (options?.verbose && !areEqual) {
     console.log(
       chalk.yellow(
         `    - File content mismatch: ${path.basename(
@@ -170,7 +195,7 @@ export async function areDirsEqual(
         }
         return false;
       }
-      if (!(await areFilesEqual(fullPath1, fullPath2, options.verbose))) {
+      if (!(await areFilesEqual(fullPath1, fullPath2, { verbose: options.verbose }))) {
         return false;
       }
     }

@@ -7,9 +7,9 @@ import { CursorSyncHandler } from "./cursor-sync.ts";
 
 export const syncHandlers: SyncHandler[] = [
   new DirectoryToFileMergeHandler(),
+  new CursorSyncHandler(),
   new ClineSyncHandler(),
   new CodeSyncHandler(),
-  new CursorSyncHandler(),
   // DefaultSyncHandler should always be last
   new DefaultSyncHandler(),
 ];

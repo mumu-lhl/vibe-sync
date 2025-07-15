@@ -1,11 +1,16 @@
 import type { ResolvedSyncObject } from "../config.ts";
 import type { SyncHandler } from "./handler.ts";
-import type { SyncAction } from "../sync-operations.ts";
 import {
-  checkWithRename,
-  planWithRename,
-  type SubdirMapping,
-} from "./rename-helper.ts";
+  areFilesEqual,
+  getAllFiles,
+  type SyncAction,
+} from "../sync-operations.ts";
+import path from "path";
+
+const header = `---
+alwaysApply: true
+---
+`;
 
 export class CursorSyncHandler implements SyncHandler {
   canHandle(source: ResolvedSyncObject, dest: ResolvedSyncObject): boolean {
@@ -18,22 +23,41 @@ export class CursorSyncHandler implements SyncHandler {
     );
   }
 
-  private getSubdirMappings(isCursorDest: boolean): SubdirMapping[] {
-    const renameToMdc = (fileName: string) => fileName.replace(/\.md$/, ".mdc");
-    const renameToMd = (fileName: string) => fileName.replace(/\.mdc$/, ".md");
-
-    return isCursorDest
-      ? [{ src: "", dest: "rules", rename: renameToMdc }]
-      : [{ src: "rules", dest: "", rename: renameToMd }];
-  }
-
   async plan(
     source: ResolvedSyncObject,
     dest: ResolvedSyncObject
   ): Promise<SyncAction[]> {
     const isCursorDest = dest.name === "Cursor";
-    const subdirMappings = this.getSubdirMappings(isCursorDest);
-    return planWithRename(source, dest, subdirMappings);
+    const sourcePath = source.path;
+    const destPath = dest.path;
+    const actions: SyncAction[] = [];
+
+    const sourceFiles = await getAllFiles(sourcePath);
+
+    for (const sourceFile of sourceFiles) {
+      const relativePath = path.relative(sourcePath, sourceFile);
+      let destFile = path.join(destPath, relativePath);
+      let transform: (content: string) => string;
+
+      if (isCursorDest) {
+        if (!sourceFile.endsWith(".md")) continue;
+        destFile = destFile.replace(/\.md$/, ".mdc");
+        transform = (content) => `${header}\n${content}`;
+      } else {
+        if (!sourceFile.endsWith(".mdc")) continue;
+        destFile = destFile.replace(/\.mdc$/, ".md");
+        transform = (content) => content.replace(`${header}\n`, "");
+      }
+
+      actions.push({
+        type: "transform",
+        source: sourceFile,
+        destination: destFile,
+        transform,
+      });
+    }
+
+    return actions;
   }
 
   async check(
@@ -42,7 +66,33 @@ export class CursorSyncHandler implements SyncHandler {
     verbose?: boolean
   ): Promise<boolean> {
     const isCursorDest = dest.name === "Cursor";
-    const subdirMappings = this.getSubdirMappings(isCursorDest);
-    return checkWithRename(source, dest, subdirMappings, verbose);
+    const sourcePath = source.path;
+    const destPath = dest.path;
+
+    const sourceFiles = await getAllFiles(sourcePath);
+
+    for (const sourceFile of sourceFiles) {
+      const relativePath = path.relative(sourcePath, sourceFile);
+      let destFile = path.join(destPath, relativePath);
+      let transform: (content: string) => string;
+
+      if (isCursorDest) {
+        if (!sourceFile.endsWith(".md")) continue;
+        destFile = destFile.replace(/\.md$/, ".mdc");
+        transform = (content) => `${header}\n${content}`;
+      } else {
+        if (!sourceFile.endsWith(".mdc")) continue;
+        destFile = destFile.replace(/\.mdc$/, ".md");
+        transform = (content) => content.replace(`${header}\n`, "");
+      }
+
+      if (
+        !(await areFilesEqual(sourceFile, destFile, { transform, verbose }))
+      ) {
+        return false;
+      }
+    }
+
+    return true;
   }
 }
