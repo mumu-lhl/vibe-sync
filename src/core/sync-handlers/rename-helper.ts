@@ -23,7 +23,14 @@ export async function planWithRename(
   const actions: SyncAction[] = [];
 
   for (const mapping of subdirMappings) {
-    const sourcePath = path.join(source.path, mapping.src);
+    const sourceRootStat = await fs.stat(source.path).catch(() => null);
+    if (!sourceRootStat) {
+      continue;
+    }
+    const sourceBasePath = sourceRootStat.isDirectory()
+      ? source.path
+      : path.dirname(source.path);
+    const sourcePath = path.join(sourceBasePath, mapping.src);
     const destPath = path.join(dest.path, mapping.dest);
 
     let sourceStat;
@@ -90,7 +97,20 @@ export async function checkWithRename(
   verbose?: boolean,
 ): Promise<boolean> {
   for (const mapping of subdirMappings) {
-    const sourcePath = path.join(source.path, mapping.src);
+    const sourceRootStat = await fs.stat(source.path).catch(() => null);
+    if (!sourceRootStat) {
+      // if source doesn't exist, check if dest exists.
+      try {
+        await fs.stat(path.join(dest.path, mapping.dest));
+        return false; // source doesn't exist, but dest does.
+      } catch {
+        continue; // both don't exist, which is fine.
+      }
+    }
+    const sourceBasePath = sourceRootStat.isDirectory()
+      ? source.path
+      : path.dirname(source.path);
+    const sourcePath = path.join(sourceBasePath, mapping.src);
     const destPath = path.join(dest.path, mapping.dest);
 
     try {
