@@ -1,3 +1,8 @@
+
 ## Guideline
 
 * Use `.ts` as importing extension
+
+### Fix bugs
+
+Set breakpoints first to debug, remove then after fixing bugs.

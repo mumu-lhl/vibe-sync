@@ -9,8 +9,7 @@ import path from "path";
 
 const header = `---
 alwaysApply: true
----
-`;
+---`;
 
 export class CursorSyncHandler implements SyncHandler {
   canHandle(source: ResolvedSyncObject, dest: ResolvedSyncObject): boolean {
@@ -46,7 +45,7 @@ export class CursorSyncHandler implements SyncHandler {
       } else {
         if (!sourceFile.endsWith(".mdc")) continue;
         destFile = destFile.replace(/\.mdc$/, ".md");
-        transform = (content) => content.replace(`${header}\n`, "");
+        transform = (content) => content.replace(/^---\n[\s\S]*?\n---\n/m, "");
       }
 
       actions.push({
@@ -83,7 +82,7 @@ export class CursorSyncHandler implements SyncHandler {
       } else {
         if (!sourceFile.endsWith(".mdc")) continue;
         destFile = destFile.replace(/\.mdc$/, ".md");
-        transform = (content) => content.replace(`${header}\n`, "");
+        transform = (content) => content.replace(/^---\n[\s\S]*?\n---\n/m, "");
       }
 
       if (

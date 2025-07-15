@@ -1,7 +1,6 @@
 ---
 alwaysApply: true
 ---
-
 ## Guideline
 
 * Use `.ts` as importing extension
