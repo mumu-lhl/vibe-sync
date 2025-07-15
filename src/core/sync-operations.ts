@@ -116,16 +116,17 @@ export async function areDirsEqual(
       console.log(chalk.gray(`  Comparing directories: ${dir1} and ${dir2}`));
     }
     const [files1, files2] = await Promise.all([
-      getAllFiles(dir1).then((files) =>
-        options.filter ? files.filter(options.filter) : files,
-      ),
-      getAllFiles(dir2), // Don't filter dir2 yet
+      getAllFiles(dir1),
+      getAllFiles(dir2),
     ]);
 
     const relativeFiles1 = files1.map((file) => path.relative(dir1, file));
-    const fileMap1 = new Map(
-      relativeFiles1.map((file, i) => [file, files1[i]]),
-    );
+    const fileMap1 = new Map<string, string>();
+    for (const [i, relativeFile] of relativeFiles1.entries()) {
+      if (!options.filter || options.filter(relativeFile)) {
+        fileMap1.set(relativeFile, files1[i]);
+      }
+    }
 
     const fileMap2 = new Map(
       files2.map((file) => [path.relative(dir2, file), file]),

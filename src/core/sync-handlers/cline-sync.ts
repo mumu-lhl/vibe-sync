@@ -34,6 +34,7 @@ export class ClineSyncHandler implements SyncHandler {
       renameFunc = renameToMd;
     }
 
+    const rulesDest = isCursorDest ? "" : "rules";
     return isClineDest
       ? [
           { src: "rules", dest: "", rename: renameFunc },
@@ -42,7 +43,7 @@ export class ClineSyncHandler implements SyncHandler {
       : [
           {
             src: "",
-            dest: "rules",
+            dest: rulesDest,
             rename: renameFunc,
             filter: (src: string) =>
               !src.startsWith(path.join(source.path, "workflows")),

@@ -115,12 +115,13 @@ export async function checkWithRename(
 
     try {
       const sourceStat = await fs.stat(sourcePath);
-      const finalDestPath = mapping.rename
-        ? path.join(
-            path.dirname(destPath),
-            mapping.rename(path.basename(sourcePath)),
-          )
-        : destPath;
+      const finalDestPath =
+        mapping.rename && sourceStat.isFile()
+          ? path.join(
+              path.dirname(destPath),
+              mapping.rename(path.basename(sourcePath)),
+            )
+          : destPath;
 
       let destStat;
       try {
@@ -139,7 +140,7 @@ export async function checkWithRename(
           filter: mapping.filter,
           verbose,
         };
-        if (!(await areDirsEqual(sourcePath, destPath, options))) {
+        if (!(await areDirsEqual(sourcePath, finalDestPath, options))) {
           return false;
         }
       } else if (sourceStat.isFile()) {
