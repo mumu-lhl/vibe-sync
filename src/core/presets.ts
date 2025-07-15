@@ -21,6 +21,11 @@ export const presets: Preset[] = [
     type: "file",
   },
   {
+    name: "Agent",
+    path: "AGENT.md",
+    type: "file",
+  },
+  {
     name: "Cline",
     path: ".clinerules/",
     type: "directory",
