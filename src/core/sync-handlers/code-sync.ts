@@ -13,6 +13,12 @@ export class CodeSyncHandler implements SyncHandler {
   }
 
   canHandle(source: ResolvedSyncObject, dest: ResolvedSyncObject): boolean {
+    // This handler is for syncing between special code directories.
+    // It is not designed to sync a single file source (like Gemini).
+    if (source.type === "file" && dest.name && this.isSpecialCode(dest.name)) {
+      return false;
+    }
+
     const isSpecialSource = !!source.name && this.isSpecialCode(source.name);
     const isSpecialDest = !!dest.name && this.isSpecialCode(dest.name);
     return (isSpecialSource || isSpecialDest) && dest.type !== "file";

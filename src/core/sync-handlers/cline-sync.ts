@@ -10,6 +10,11 @@ import {
 
 export class ClineSyncHandler implements SyncHandler {
   canHandle(source: ResolvedSyncObject, dest: ResolvedSyncObject): boolean {
+    // This handler is for syncing between Cline and another structured directory (like Cursor).
+    // It is not designed to sync a single file source (like Gemini) to the Cline directory.
+    if (source.type === "file" && dest.name === "Cline") {
+      return false;
+    }
     return (
       (source.name === "Cline" || dest.name === "Cline") && dest.type !== "file"
     );
