@@ -2,6 +2,18 @@
 
 A CLI tool to sync vibe coding rules and workflows across different vibe coding tools.
 
+## Support
+
+- [x] Claude Code
+- [x] Cursor
+- [x] Gemini CLI
+- [x] Kilo Code
+- [x] Cline
+- [x] Roo Code
+- [x] Jules
+- [x] Agent.md
+- [ ] Windsurf
+
 ## Installation
 
 To install `vibe-sync`, ensure you have Node.js (>= 23.6.0). Then, run the following command:
