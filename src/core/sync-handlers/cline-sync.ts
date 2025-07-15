@@ -17,43 +17,60 @@ export class ClineSyncHandler implements SyncHandler {
 
   private getSubdirMappings(
     isClineDest: boolean,
-    source: ResolvedSyncObject
+    isCursorDest: boolean,
+    source: ResolvedSyncObject,
   ): SubdirMapping[] {
     const renameToMdc = (fileName: string) => fileName.replace(/\.md$/, ".mdc");
     const renameToMd = (fileName: string) => fileName.replace(/\.mdc$/, ".md");
+    let renameFunc = undefined;
+    if (isCursorDest) {
+      renameFunc = renameToMdc;
+    } else if (source.name === "Cursor") {
+      renameFunc = renameToMd;
+    }
 
     return isClineDest
       ? [
-          { src: "rules", dest: "", rename: renameToMdc },
-          { src: "workflows", dest: "workflows" },
+          { src: "rules", dest: "", rename: renameFunc },
+          { src: "workflows", dest: "workflows", rename: renameFunc },
         ]
       : [
           {
             src: "",
             dest: "rules",
-            rename: renameToMd,
+            rename: renameFunc,
             filter: (src: string) =>
               !src.startsWith(path.join(source.path, "workflows")),
           },
-          { src: "workflows", dest: "workflows" },
+          { src: "workflows", dest: "workflows", rename: renameFunc },
         ];
   }
 
   async plan(
     source: ResolvedSyncObject,
-    dest: ResolvedSyncObject
+    dest: ResolvedSyncObject,
   ): Promise<SyncAction[]> {
     const isClineDest = dest.name === "Cline";
-    const subdirMappings = this.getSubdirMappings(isClineDest, source);
+    const isCursorDest = dest.name === "Cursor";
+    const subdirMappings = this.getSubdirMappings(
+      isClineDest,
+      isCursorDest,
+      source,
+    );
     return planWithRename(source, dest, subdirMappings);
   }
 
   async check(
     source: ResolvedSyncObject,
-    dest: ResolvedSyncObject
+    dest: ResolvedSyncObject,
   ): Promise<boolean> {
     const isClineDest = dest.name === "Cline";
-    const subdirMappings = this.getSubdirMappings(isClineDest, source);
+    const isCursorDest = dest.name === "Cursor";
+    const subdirMappings = this.getSubdirMappings(
+      isClineDest,
+      isCursorDest,
+      source,
+    );
     return checkWithRename(source, dest, subdirMappings);
   }
 }

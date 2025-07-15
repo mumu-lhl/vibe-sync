@@ -34,12 +34,16 @@ export async function planWithRename(
     }
 
     const isSourceDir = sourceStat.isDirectory();
-    const filesInSource = isSourceDir ? await getAllFiles(sourcePath) : [sourcePath];
+    const filesInSource = isSourceDir
+      ? await getAllFiles(sourcePath)
+      : [sourcePath];
 
     const filesToCopy = mapping.filter
       ? filesInSource.filter((f) =>
-        mapping.filter!(isSourceDir ? path.relative(sourcePath, f) : path.basename(f)),
-      )
+          mapping.filter!(
+            isSourceDir ? path.relative(sourcePath, f) : path.basename(f),
+          ),
+        )
       : filesInSource;
 
     if (filesToCopy.length > 0) {
@@ -91,7 +95,10 @@ export async function checkWithRename(
     try {
       const sourceStat = await fs.stat(sourcePath);
       const finalDestPath = mapping.rename
-        ? path.join(path.dirname(destPath), mapping.rename(path.basename(sourcePath)))
+        ? path.join(
+            path.dirname(destPath),
+            mapping.rename(path.basename(sourcePath)),
+          )
         : destPath;
 
       let destStat;
@@ -111,14 +118,21 @@ export async function checkWithRename(
           return false;
         }
       } else if (sourceStat.isFile()) {
-        if (!destStat.isFile() || !(await areFilesEqual(sourcePath, finalDestPath))) {
+        if (
+          !destStat.isFile() ||
+          !(await areFilesEqual(sourcePath, finalDestPath))
+        ) {
           return false;
         }
       } else {
         return false;
       }
     } catch (error) {
-      if (error instanceof Error && "code" in error && error.code === "ENOENT") {
+      if (
+        error instanceof Error &&
+        "code" in error &&
+        error.code === "ENOENT"
+      ) {
         try {
           await fs.stat(destPath);
           return false;

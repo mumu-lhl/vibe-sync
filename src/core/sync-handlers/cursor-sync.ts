@@ -16,10 +16,8 @@ export class CursorSyncHandler implements SyncHandler {
   }
 
   private getSubdirMappings(isCursorDest: boolean): SubdirMapping[] {
-    const renameToMdc = (fileName: string) =>
-      fileName.replace(/\.md$/, ".mdc");
-    const renameToMd = (fileName: string) =>
-      fileName.replace(/\.mdc$/, ".md");
+    const renameToMdc = (fileName: string) => fileName.replace(/\.md$/, ".mdc");
+    const renameToMd = (fileName: string) => fileName.replace(/\.mdc$/, ".md");
 
     return isCursorDest
       ? [{ src: "", dest: "rules", rename: renameToMdc }]

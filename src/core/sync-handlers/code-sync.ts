@@ -18,16 +18,22 @@ export class CodeSyncHandler implements SyncHandler {
     return (isSpecialSource || isSpecialDest) && dest.type !== "file";
   }
 
-  private getSubdirMappings(isDestSpecial: boolean): SubdirMapping[] {
-    const renameToMdc = (fileName: string) =>
-      fileName.replace(/\.md$/, ".mdc");
-    const renameToMd = (fileName: string) =>
-      fileName.replace(/\.mdc$/, ".md");
-    const renameFunc = isDestSpecial ? renameToMdc : renameToMd;
+  private getSubdirMappings(
+    isCursorDest: boolean,
+    source: ResolvedSyncObject,
+  ): SubdirMapping[] {
+    const renameToMdc = (fileName: string) => fileName.replace(/\.md$/, ".mdc");
+    const renameToMd = (fileName: string) => fileName.replace(/\.mdc$/, ".md");
+    let renameFunc = undefined;
+    if (isCursorDest) {
+      renameFunc = renameToMdc;
+    } else if (source.name === "Cursor") {
+      renameFunc = renameToMd;
+    }
 
     return [
       { src: "rules", dest: "rules", rename: renameFunc },
-      { src: "workflows", dest: "workflows" },
+      { src: "workflows", dest: "workflows", rename: renameFunc },
     ];
   }
 
@@ -35,8 +41,8 @@ export class CodeSyncHandler implements SyncHandler {
     source: ResolvedSyncObject,
     dest: ResolvedSyncObject,
   ): Promise<SyncAction[]> {
-    const isDestSpecial = !!dest.name && this.isSpecialCode(dest.name);
-    const subdirMappings = this.getSubdirMappings(isDestSpecial);
+    const isCursorDest = dest.name === "Cursor";
+    const subdirMappings = this.getSubdirMappings(isCursorDest, source);
     return planWithRename(source, dest, subdirMappings);
   }
 
@@ -44,8 +50,8 @@ export class CodeSyncHandler implements SyncHandler {
     source: ResolvedSyncObject,
     dest: ResolvedSyncObject,
   ): Promise<boolean> {
-    const isDestSpecial = !!dest.name && this.isSpecialCode(dest.name);
-    const subdirMappings = this.getSubdirMappings(isDestSpecial);
+    const isCursorDest = dest.name === "Cursor";
+    const subdirMappings = this.getSubdirMappings(isCursorDest, source);
     return checkWithRename(source, dest, subdirMappings);
   }
 }
