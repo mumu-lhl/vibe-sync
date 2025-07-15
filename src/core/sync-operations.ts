@@ -30,7 +30,11 @@ export interface TransformAction {
   transform: (content: string) => string;
 }
 
-export type SyncAction = CopyAction | MkdirAction | MergeAction | TransformAction;
+export type SyncAction =
+  | CopyAction
+  | MkdirAction
+  | MergeAction
+  | TransformAction;
 
 // Action execution
 export async function executeAction(action: SyncAction): Promise<void> {
@@ -110,7 +114,8 @@ export async function areFilesEqual(
   if (options?.transform) {
     const content1 = await fs.readFile(path1, "utf-8");
     const transformedContent1 = options.transform(content1);
-    const transformedHash1 = createHash("sha256").update(transformedContent1)
+    const transformedHash1 = createHash("sha256")
+      .update(transformedContent1)
       .digest("hex");
     return transformedHash1 === hash2;
   }
@@ -195,7 +200,11 @@ export async function areDirsEqual(
         }
         return false;
       }
-      if (!(await areFilesEqual(fullPath1, fullPath2, { verbose: options.verbose }))) {
+      if (
+        !(await areFilesEqual(fullPath1, fullPath2, {
+          verbose: options.verbose,
+        }))
+      ) {
         return false;
       }
     }

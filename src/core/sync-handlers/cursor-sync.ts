@@ -24,7 +24,7 @@ export class CursorSyncHandler implements SyncHandler {
 
   async plan(
     source: ResolvedSyncObject,
-    dest: ResolvedSyncObject
+    dest: ResolvedSyncObject,
   ): Promise<SyncAction[]> {
     const isCursorDest = dest.name === "Cursor";
     const sourcePath = source.path;
@@ -62,7 +62,7 @@ export class CursorSyncHandler implements SyncHandler {
   async check(
     source: ResolvedSyncObject,
     dest: ResolvedSyncObject,
-    verbose?: boolean
+    verbose?: boolean,
   ): Promise<boolean> {
     const isCursorDest = dest.name === "Cursor";
     const sourcePath = source.path;

@@ -15,7 +15,7 @@ export class DefaultSyncHandler implements SyncHandler {
 
   async plan(
     source: ResolvedSyncObject,
-    dest: ResolvedSyncObject
+    dest: ResolvedSyncObject,
   ): Promise<SyncAction[]> {
     const actions: SyncAction[] = [];
     const destParentDir =
@@ -57,7 +57,7 @@ export class DefaultSyncHandler implements SyncHandler {
   async check(
     source: ResolvedSyncObject,
     dest: ResolvedSyncObject,
-    verbose?: boolean
+    verbose?: boolean,
   ): Promise<boolean> {
     if (source.type === "directory" && dest.type === "directory") {
       return areDirsEqual(source.path, dest.path, { verbose });
