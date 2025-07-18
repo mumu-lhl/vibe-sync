@@ -41,6 +41,11 @@ export const presets: Preset[] = [
     type: "directory",
   },
   {
+    name: "Windsurf",
+    path: ".windsurf/",
+    type: "directory",
+  },
+  {
     name: "Cursor",
     path: ".cursor/rules/",
     type: "directory",

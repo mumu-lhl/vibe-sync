@@ -12,7 +12,7 @@ A CLI tool to sync vibe coding rules and workflows across different vibe coding 
 - [x] Roo Code
 - [x] Jules
 - [x] Agent.md
-- [ ] Windsurf
+- [x] Windsurf
 
 ## Installation
 

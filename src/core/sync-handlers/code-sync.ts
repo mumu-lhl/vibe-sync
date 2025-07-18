@@ -9,7 +9,7 @@ import { type SyncAction } from "../sync-operations.ts";
 
 export class CodeSyncHandler implements SyncHandler {
   private isSpecialCode(name: string): boolean {
-    return name === "Kilo Code" || name === "Roo Code";
+    return name === "Kilo Code" || name === "Roo Code" || name == "Windsurf";
   }
 
   canHandle(source: ResolvedSyncObject, dest: ResolvedSyncObject): boolean {
