@@ -1,9 +1,12 @@
 GEMINI.md
 CLAUDE.md
 AGENTS.md
+AGENT.md
 .clinerules/
 .roo/
 .kilocode/
+.cursor/
+.windsurf/
 
 vibesync.yaml
 
