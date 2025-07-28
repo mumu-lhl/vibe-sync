@@ -19,7 +19,7 @@ importers:
         version: 4.1.0
       zod:
         specifier: ^4.0.5
-        version: 4.0.5
+        version: 4.0.10
     devDependencies:
       '@types/js-yaml':
         specifier: ^4.0.9
@@ -631,8 +631,8 @@ packages:
     engines: {node: '>=8'}
     hasBin: true
 
-  zod@4.0.5:
-    resolution: {integrity: sha512-/5UuuRPStvHXu7RS+gmvRf4NXrNxpSllGwDnCBcJZtQsKrviYXm54yDGV2KYNLT5kq0lHGcl7lqWJLgSaG+tgA==}
+  zod@4.0.10:
+    resolution: {integrity: sha512-3vB+UU3/VmLL2lvwcY/4RV2i9z/YU0DTV/tDuYjrwmx5WeJ7hwy+rGEEx8glHp6Yxw7ibRbKSaIFBgReRPe5KA==}
 
 snapshots:
 
@@ -1105,4 +1105,4 @@ snapshots:
       siginfo: 2.0.0
       stackback: 0.0.2
 
-  zod@4.0.5: {}
+  zod@4.0.10: {}
