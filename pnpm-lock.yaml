@@ -10,7 +10,7 @@ importers:
     dependencies:
       chalk:
         specifier: ^5.4.1
-        version: 5.4.1
+        version: 5.5.0
       commander:
         specifier: ^14.0.0
         version: 14.0.0
@@ -400,8 +400,8 @@ packages:
     resolution: {integrity: sha512-mCuXncKXk5iCLhfhwTc0izo0gtEmpz5CtG2y8GiOINBlMVS6v8TMRc5TaLWKS6692m9+dVVfzgeVxR5UxWHTYw==}
     engines: {node: '>=12'}
 
-  chalk@5.4.1:
-    resolution: {integrity: sha512-zgVZuo2WcZgfUEmsn6eO3kINexW8RAE4maiQ8QNs8CtpPCSyMiYsULR3HQYkm3w8FIA3SberyMJMSldGsW+U3w==}
+  chalk@5.5.0:
+    resolution: {integrity: sha512-1tm8DTaJhPBG3bIkVeZt1iZM9GfSX2lzOeDVZH9R9ffRHpmHvxZ/QhgQH/aDTkswQVt+YHdXAdS/In/30OjCbg==}
     engines: {node: ^12.17.0 || ^14.13 || >=16.0.0}
 
   check-error@2.1.1:
@@ -870,7 +870,7 @@ snapshots:
       loupe: 3.1.4
       pathval: 2.0.1
 
-  chalk@5.4.1: {}
+  chalk@5.5.0: {}
 
   check-error@2.1.1: {}
 
