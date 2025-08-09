@@ -54,5 +54,5 @@ export const presets: Preset[] = [
     name: "Qwen",
     path: "QWEN.md",
     type: "file",
-  }
+  },
 ];
