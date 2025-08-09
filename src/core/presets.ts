@@ -50,4 +50,9 @@ export const presets: Preset[] = [
     path: ".cursor/rules/",
     type: "directory",
   },
+  {
+    name: "Qwen",
+    path: "QWEN.md",
+    type: "file",
+  }
 ];
